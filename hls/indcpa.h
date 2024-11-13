@@ -1,8 +1,6 @@
 #ifndef INDCPA_H
 #define INDCPA_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "polyvec.h"
 #include "typedefs.h"

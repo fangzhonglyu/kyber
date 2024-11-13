@@ -1,7 +1,5 @@
 #include "reduce.h"
 
-#include <stdint.h>
-
 #include "params.h"
 
 /*************************************************

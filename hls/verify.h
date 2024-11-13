@@ -2,7 +2,6 @@
 #define VERIFY_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "params.h"
 #include "typedefs.h"

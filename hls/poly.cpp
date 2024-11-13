@@ -1,7 +1,5 @@
 #include "poly.h"
 
-#include <stdint.h>
-
 #include "cbd.h"
 #include "ntt.h"
 #include "params.h"

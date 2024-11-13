@@ -1,8 +1,6 @@
 #ifndef REDUCE_H
 #define REDUCE_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "typedefs.h"
 

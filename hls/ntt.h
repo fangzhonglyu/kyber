@@ -1,8 +1,6 @@
 #ifndef NTT_H
 #define NTT_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "typedefs.h"
 

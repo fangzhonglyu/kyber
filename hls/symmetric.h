@@ -2,7 +2,6 @@
 #define SYMMETRIC_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "fips202.h"
 #include "params.h"

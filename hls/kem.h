@@ -1,8 +1,6 @@
 #ifndef KEM_H
 #define KEM_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "typedefs.h"
 

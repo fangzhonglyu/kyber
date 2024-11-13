@@ -1,8 +1,6 @@
 #ifndef CBD_H
 #define CBD_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "poly.h"
 #include "typedefs.h"

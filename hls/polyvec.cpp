@@ -1,7 +1,5 @@
 #include "polyvec.h"
 
-#include <stdint.h>
-
 #include "params.h"
 #include "poly.h"
 

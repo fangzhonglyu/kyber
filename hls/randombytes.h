@@ -2,7 +2,6 @@
 #define RANDOMBYTES_H
 
 #include <stddef.h>
-#include <stdint.h>
 
 #include "typedefs.h"
 

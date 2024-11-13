@@ -1,8 +1,6 @@
 #ifndef POLY_H
 #define POLY_H
 
-#include <stdint.h>
-
 #include "params.h"
 #include "typedefs.h"
 
