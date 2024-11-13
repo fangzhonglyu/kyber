@@ -1,6 +1,5 @@
 #include "indcpa.h"
 
-#include <stddef.h>
 #include <string.h>
 
 #include "ntt.h"

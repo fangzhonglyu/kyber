@@ -1,8 +1,6 @@
 #ifndef FIPS202_H
 #define FIPS202_H
 
-#include <stddef.h>
-
 #include "typedefs.h"
 
 #define SHAKE128_RATE 168

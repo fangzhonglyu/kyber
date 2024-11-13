@@ -1,8 +1,6 @@
 #ifndef VERIFY_H
 #define VERIFY_H
 
-#include <stddef.h>
-
 #include "params.h"
 #include "typedefs.h"
 

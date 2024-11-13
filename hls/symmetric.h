@@ -1,8 +1,6 @@
 #ifndef SYMMETRIC_H
 #define SYMMETRIC_H
 
-#include <stddef.h>
-
 #include "fips202.h"
 #include "params.h"
 #include "typedefs.h"

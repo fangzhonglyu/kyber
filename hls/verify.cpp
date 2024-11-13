@@ -1,7 +1,5 @@
 #include "verify.h"
 
-#include <stddef.h>
-
 /*************************************************
  * Name:        verify
  *
