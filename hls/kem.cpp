@@ -119,8 +119,8 @@ void crypto_kem_enc_derand(bit8_t *ct, bit8_t *ss, const bit8_t *pk,
  * Returns 0 (success)
  **************************************************/
 void crypto_kem_enc(bit8_t *ct, bit8_t *ss, const bit8_t *pk) {
-  bit8_t coins[KYBER_SYMBYTES] = {0};
-  // randombytes<KYBER_SYMBYTES>(coins);
+  bit8_t coins[KYBER_SYMBYTES];
+  randombytes<KYBER_SYMBYTES>(coins);
   crypto_kem_enc_derand(ct, ss, pk, coins);
 }
 

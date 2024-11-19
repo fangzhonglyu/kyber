@@ -74,17 +74,20 @@ static sbit16_t fqmul(sbit16_t a, sbit16_t b) {
  *Zq
  **************************************************/
 void ntt(sbit16_t r[256]) {
-  bit32_t len, start, j, k;
+  int len, start, j, k;
   sbit16_t t, zeta;
 
   k = 1;
   for (len = 128; len >= 2; len >>= 1) {
-    for (start = 0; start < 256; start = j + len) {
+    #pragma HLS unroll
+NTT_OUTER:
+    for (start = 0; start < 256; start += 2*len) {
       zeta = zetas[k++];
-      for (j = start; j < start + len; j++) {
-        t = fqmul(zeta, r[j + len]);
-        r[j + len] = r[j] - t;
-        r[j] = r[j] + t;
+NTT_INNER:
+      for (j = 0; j < len; j++) {
+        t = fqmul(zeta, r[start + j + len]);
+        r[start + j + len] = r[start + j] - t;
+        r[start + j] = r[start + j] + t;
       }
     }
   }
@@ -101,19 +104,22 @@ void ntt(sbit16_t r[256]) {
  *Zq
  **************************************************/
 void invntt(sbit16_t r[256]) {
-  bit32_t start, len, j, k;
+  int start, len, j, k;
   sbit16_t t, zeta;
   const sbit16_t f = 1441;  // mont^2/128
 
   k = 127;
   for (len = 2; len <= 128; len <<= 1) {
-    for (start = 0; start < 256; start = j + len) {
+    #pragma HLS unroll
+INTT_OUTER:
+    for (start = 0; start < 256; start += 2*len) {
       zeta = zetas[k--];
-      for (j = start; j < start + len; j++) {
-        t = r[j];
-        r[j] = barrett_reduce(t + r[j + len]);
-        r[j + len] = r[j + len] - t;
-        r[j + len] = fqmul(zeta, r[j + len]);
+INTT_INNER:
+      for (j = 0; j < len; j++) {
+        t = r[start + j];
+        r[start + j] = barrett_reduce(t + r[start + j + len]);
+        r[start + j + len] = r[start + j + len] - t;
+        r[start + j + len] = fqmul(zeta, r[start + j + len]);
       }
     }
   }
