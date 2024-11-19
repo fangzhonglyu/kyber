@@ -201,7 +201,7 @@ void poly_tomsg(bit8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a) {
       t *= 80635;
       t >>= 28;
       t &= 1;
-      msg[i] |= t << j;
+      msg[i] |= (bit8_t)(t << j);
     }
   }
 }

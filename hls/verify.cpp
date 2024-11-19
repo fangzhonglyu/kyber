@@ -37,7 +37,7 @@ void cmov(bit8_t *r, const bit8_t *x, bit32_t len, bit8_t b) {
   bit32_t i;
 
   b = -b;
-  for (i = 0; i < len; i++) r[i] ^= b & (r[i] ^ x[i]);
+  for (i = 0; i < len; i++) r[i] ^= (bit8_t)(b & (r[i] ^ x[i]));
 }
 
 /*************************************************
@@ -53,5 +53,5 @@ void cmov(bit8_t *r, const bit8_t *x, bit32_t len, bit8_t b) {
  **************************************************/
 void cmov_int16(sbit16_t *r, sbit16_t v, bit16_t b) {
   b = -b;
-  *r ^= b & ((*r) ^ v);
+  *r ^= (sbit16_t)(b & ((*r) ^ v));
 }
