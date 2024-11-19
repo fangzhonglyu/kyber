@@ -7,15 +7,12 @@
 
 typedef keccak_state xof_state;
 
-#define kyber_shake128_absorb KYBER_NAMESPACE(kyber_shake128_absorb)
 void kyber_shake128_absorb(keccak_state *s, const bit8_t seed[KYBER_SYMBYTES],
                            bit8_t x, bit8_t y);
 
-#define kyber_shake256_prf KYBER_NAMESPACE(kyber_shake256_prf)
 void kyber_shake256_prf(bit8_t *out, bit32_t outlen,
                         const bit8_t key[KYBER_SYMBYTES], bit8_t nonce);
 
-#define kyber_shake256_rkprf KYBER_NAMESPACE(kyber_shake256_rkprf)
 void kyber_shake256_rkprf(bit8_t out[KYBER_SSBYTES],
                           const bit8_t key[KYBER_SYMBYTES],
                           const bit8_t input[KYBER_CIPHERTEXTBYTES]);
