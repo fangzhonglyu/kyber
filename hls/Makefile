@@ -67,7 +67,7 @@ $(BUILD):
 
 OBJECTS := $(addprefix $(BUILD)/,$(subst .cpp,.o,$(notdir $(SOURCES))))
 
-$(OBJECTS): $(BUILD)/%.o: %.cpp $(BUILD)
+$(OBJECTS): $(BUILD)/%.o: %.cpp $(HEADERS) $(BUILD)
 	$(CC) $(CFLAGS) -DKYBER_K=2 -c $< -o $@
 
 .PHONY: all speed clean
