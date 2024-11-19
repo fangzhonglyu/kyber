@@ -4,6 +4,14 @@
 #include "../kem.h"
 #include "../randombytes.h"
 
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 #define NTESTS 1000
 
 static int test_keys(void)
@@ -25,6 +33,14 @@ static int test_keys(void)
 
   if(memcmp(key_a, key_b, CRYPTO_BYTES)) {
     printf("ERROR keys\n");
+
+    for (int i = 0; i < CRYPTO_BYTES; i++) {
+      if (key_a[i] == key_b[i]) {
+        printf(ANSI_COLOR_GREEN "%d: %hhx == %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
+      } else {
+        printf(ANSI_COLOR_RED "%d: %hhx != %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
+      }
+    }
     return 1;
   }
 
