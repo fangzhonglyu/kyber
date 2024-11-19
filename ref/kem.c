@@ -86,12 +86,7 @@ int crypto_kem_enc_derand(uint8_t *ct,
 
   /* Multitarget countermeasure for coins + contributory KEM */
   hash_h(buf+KYBER_SYMBYTES, pk, KYBER_PUBLICKEYBYTES);
-
-  PRINT_UINT_ARR("buf_enc", buf, 2*KYBER_SYMBYTES);
-
   hash_g(kr, buf, 2*KYBER_SYMBYTES);
-
-  PRINT_UINT_ARR("kr_enc", kr, 2*KYBER_SYMBYTES);
 
   /* coins are in kr+KYBER_SYMBYTES */
   indcpa_enc(ct, buf, pk, kr+KYBER_SYMBYTES);

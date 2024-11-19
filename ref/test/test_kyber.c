@@ -20,30 +20,21 @@ static int test_keys(void)
 
   //Alice generates a public key
   crypto_kem_keypair(pk, sk);
-  printf("pk: ");
-  for(int i = 0; i < CRYPTO_PUBLICKEYBYTES; i++) {
-    printf("%2x", pk[i]);
-  }
-  printf("\nsk: ");
-  for(int i = 0; i < CRYPTO_SECRETKEYBYTES; i++) {
-    printf("%2x", sk[i]);
-  }
+  PRINT_UINT_ARR("pk", pk, CRYPTO_PUBLICKEYBYTES);
+  PRINT_UINT_ARR("sk", sk, CRYPTO_SECRETKEYBYTES);
 
   //Bob derives a secret key and creates a response
   crypto_kem_enc(ct, key_b, pk);
 
-  printf("\nct: ");
-  for(int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i++) {
-    printf("%2x", (int)ct[i]);
+  PRINT_UINT_ARR("ct", ct, CRYPTO_CIPHERTEXTBYTES);
+  
+  //Alice uses Bobs response to get her shared key
+  crypto_kem_dec(key_a, ct, sk);
+
+  if(memcmp(key_a, key_b, CRYPTO_BYTES)) {
+    printf("ERROR keys\n");
+    return 1;
   }
-
-  // //Alice uses Bobs response to get her shared key
-  // crypto_kem_dec(key_a, ct, sk);
-
-  // if(memcmp(key_a, key_b, CRYPTO_BYTES)) {
-  //   printf("ERROR keys\n");
-  //   return 1;
-  // }
 
   return 0;
 }

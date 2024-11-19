@@ -41,7 +41,7 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a)
       u  = a->coeffs[8*i+j];
       u += (u >> 15) & KYBER_Q;
 /*    t[j] = ((((uint16_t)u << 4) + KYBER_Q/2)/KYBER_Q) & 15; */
-      printf("u: %x\n", (int)u);
+
       d0 = u << 4;
       d0 += 1665;
       d0 *= 80635;
@@ -49,15 +49,10 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a)
       t[j] = d0 & 0xf;
     }
 
-    for(j = 0; j < 8; j++)
-      printf("tt[%d]: %x\n", j, (int)t[j]);
-
     r[0] = t[0] | (t[1] << 4);
     r[1] = t[2] | (t[3] << 4);
     r[2] = t[4] | (t[5] << 4);
     r[3] = t[6] | (t[7] << 4);
-    for(j = 0; j < 4; j++)
-      printf("rr[%d]: %x\n", j, (int)r[j]);
     r += 4;
   }
 #elif (KYBER_POLYCOMPRESSEDBYTES == 160)

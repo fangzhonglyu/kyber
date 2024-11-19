@@ -85,10 +85,7 @@ static void unpack_sk(polyvec *sk, const uint8_t packedsk[KYBER_INDCPA_SECRETKEY
 **************************************************/
 static void pack_ciphertext(uint8_t r[KYBER_INDCPA_BYTES], polyvec *b, poly *v)
 {
-  PRINT_UINT_ARR("pre_r", r, KYBER_INDCPA_BYTES);
-  print_poly_vec(b);
   polyvec_compress(r, b);
-  PRINT_UINT_ARR("r", r, KYBER_INDCPA_BYTES);
   poly_compress(r+KYBER_POLYVECCOMPRESSEDBYTES, v);
 }
 
@@ -221,13 +218,6 @@ void indcpa_keypair_derand(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
   buf[KYBER_SYMBYTES] = KYBER_K;
 
   hash_g(buf, buf, KYBER_SYMBYTES+1);
-
-  printf("KYBER_SYMBYTES: %d\n", KYBER_SYMBYTES);
-  printf("buf: ");
-  for(i = 0; i < KYBER_SYMBYTES; i++) {
-    printf("%2x", buf[i]);
-  }
-
   gen_a(a, publicseed);
 
   for(i=0;i<KYBER_K;i++)
@@ -281,13 +271,9 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
 
   unpack_pk(&pkpv, seed, pk);
 
-  PRINT_UINT_ARR("M", m, KYBER_INDCPA_MSGBYTES);
-
   poly_frommsg(&k, m);
   gen_at(at, seed);
 
-  print_poly_vec(&pkpv);
-  print_poly(&k);
 
   for(i=0;i<KYBER_K;i++)
     poly_getnoise_eta1(sp.vec+i, coins, nonce++);
@@ -296,8 +282,6 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
   poly_getnoise_eta2(&epp, coins, nonce++);
 
   polyvec_ntt(&sp);
-
-  print_poly_vec(&sp);
 
   // matrix-vector multiplication
   for(i=0;i<KYBER_K;i++)
@@ -314,10 +298,6 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
   polyvec_reduce(&b);
   poly_reduce(&v);
 
-  print_poly_vec(&b);
-  print_poly(&v);
-
-  PRINT_UINT_ARR("c", c, KYBER_INDCPA_BYTES);
   pack_ciphertext(c, &b, &v);
 }
 
