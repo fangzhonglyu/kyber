@@ -214,7 +214,7 @@ void indcpa_keypair_derand(bit8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
   polyvec a[KYBER_K], e, pkpv, skpv;
 
   for (i = 0; i < KYBER_SYMBYTES; i++) {
-    buf[i] = coins[i]
+    buf[i] = coins[i];
   }
   buf[KYBER_SYMBYTES] = KYBER_K;
   hash_g(buf, buf, KYBER_SYMBYTES + 1);
