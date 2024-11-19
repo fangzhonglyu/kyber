@@ -1,12 +1,10 @@
-# Extract Vivado HLS include path
-XILINX_VIVADO?=/opt/xilinx/Vivado/2019.2
-XIL_HLS=source $(XILINX_VIVADO)/settings64.sh; vivado_hls
-VHLS_INC=$(XILINX_VIVADO)/include
+# ========================================================================
+# Makefile for HLS implementation of Kyber
+# ========================================================================
 
-CC = /usr/bin/g++
-CFLAGS += -g -I${VHLS_INC} -DHLS_NO_XIL_FPO_LIB -O3 -lrt -std=c++11 -lstdc++
-NISTFLAGS += -Wno-unused-result -O3 -fomit-frame-pointer
-RM = /bin/rm
+# ------------------------------------------------------------------------
+# Specify source files
+# ------------------------------------------------------------------------
 
 SOURCES = \
   kem.cpp \
@@ -39,21 +37,53 @@ HEADERS = \
   fips202.h \
   randombytes.h
 
+# ------------------------------------------------------------------------
+# Extract Vivado HLS include path
+# ------------------------------------------------------------------------
+
+XILINX_VIVADO?=/opt/xilinx/Vivado/2019.2
+XIL_HLS=source $(XILINX_VIVADO)/settings64.sh; vivado_hls
+VHLS_INC=$(XILINX_VIVADO)/include
+
+# ------------------------------------------------------------------------
+# Compiler setup
+# ------------------------------------------------------------------------
+
+CC = /usr/bin/g++
+CFLAGS += -g -I${VHLS_INC} -DHLS_NO_XIL_FPO_LIB -O3 -lrt -std=c++11 -lstdc++
+NISTFLAGS += -Wno-unused-result -O3 -fomit-frame-pointer
+RM = /bin/rm
+
+MAKEFLAGS := --jobs=$(shell nproc)
+
+BUILD ?= build
+
+$(BUILD):
+	@mkdir build
+
+# ------------------------------------------------------------------------
+# Object file targets
+# ------------------------------------------------------------------------
+
+OBJECTS := $(addprefix $(BUILD)/,$(subst .cpp,.o,$(notdir $(SOURCES))))
+
+$(OBJECTS): $(BUILD)/%.o: %.cpp $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=2 -c $< -o $@
 
 .PHONY: all speed clean
 
 all: speed
 
 speed: \
-  test/test_speed512 \
+  build/test_speed512 \
 
 # shared: \
 #   lib/libpqcrystals_kyber512_hls.so \
 #   lib/libpqcrystals_kyber768_hls.so \
 #   lib/libpqcrystals_kyber1024_hls.so \
 
-test/test_speed512: test/test_speed.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_speed.cpp -o $@
+build/test_speed512: test/test_speed.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) test/test_speed.cpp -o $@
 
 # lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)
 # 	mkdir -p lib
@@ -69,5 +99,5 @@ test/test_speed512: test/test_speed.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
 
 clean:
 	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so
-	-$(RM) -rf lib/
+	-$(RM) -rf lib/ $(BUILD)
 
