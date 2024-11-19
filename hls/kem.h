@@ -17,20 +17,15 @@
 #define CRYPTO_ALGNAME "Kyber1024"
 #endif
 
-#define crypto_kem_keypair_derand KYBER_NAMESPACE(keypair_derand)
 void crypto_kem_keypair_derand(bit8_t *pk, bit8_t *sk, const bit8_t *coins);
 
-#define crypto_kem_keypair KYBER_NAMESPACE(keypair)
 void crypto_kem_keypair(bit8_t *pk, bit8_t *sk);
 
-#define crypto_kem_enc_derand KYBER_NAMESPACE(enc_derand)
 void crypto_kem_enc_derand(bit8_t *ct, bit8_t *ss, const bit8_t *pk,
                            const bit8_t *coins);
 
-#define crypto_kem_enc KYBER_NAMESPACE(enc)
 void crypto_kem_enc(bit8_t *ct, bit8_t *ss, const bit8_t *pk);
 
-#define crypto_kem_dec KYBER_NAMESPACE(dec)
 void crypto_kem_dec(bit8_t *ss, const bit8_t *ct, const bit8_t *sk);
 
 #endif

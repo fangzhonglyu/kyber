@@ -5,6 +5,13 @@
 #include "../randombytes.h"
 
 #define NTESTS 1
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
 
 static int test_keys(void)
 {
@@ -35,6 +42,13 @@ static int test_keys(void)
   for(int i = 0; i < CRYPTO_BYTES; i++) {
     if(key_a[i] != key_b[i]) {
       printf("ERROR keys\n");
+      for (int i = 0; i < CRYPTO_BYTES; i++) {
+        if (key_a[i] == key_b[i]) {
+          printf(ANSI_COLOR_GREEN "%d: %hhx == %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
+        } else {
+          printf(ANSI_COLOR_RED "%d: %hhx != %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
+        }
+      }
       return 1;
     }
   }
@@ -82,7 +96,7 @@ static int test_invalid_ciphertext(void)
   size_t pos;
 
   do {
-    randombytes<1>(&b);
+    randombytes<sizeof(bit8_t)>(&b);
   } while(!b);
   randombytes<sizeof(size_t)>((bit8_t *)&pos);
 

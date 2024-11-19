@@ -47,10 +47,10 @@ void dut_enc(hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out) {
   // Write resulting ciphertext
   for( int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i = i + 4 ){
     bit32_t ct_word;
-    key_b_word(7,0) = ct[i + 0];
-    key_b_word(15,8) = ct[i + 1];
-    key_b_word(23,16) = ct[i + 2];
-    key_b_word(31,24) = ct[i + 3];
+    ct_word(7,0) = ct[i + 0];
+    ct_word(15,8) = ct[i + 1];
+    ct_word(23,16) = ct[i + 2];
+    ct_word(31,24) = ct[i + 3];
 
     strm_out.write(ct_word);
   }

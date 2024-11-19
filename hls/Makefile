@@ -1,12 +1,10 @@
-# Extract Vivado HLS include path
-XILINX_VIVADO?=/opt/xilinx/Vivado/2019.2
-XIL_HLS=source $(XILINX_VIVADO)/settings64.sh; vivado_hls
-VHLS_INC=$(XILINX_VIVADO)/include
+# ========================================================================
+# Makefile for HLS implementation of Kyber
+# ========================================================================
 
-CC = /usr/bin/g++
-CFLAGS += -g -I${VHLS_INC} -DHLS_NO_XIL_FPO_LIB -O3 -lrt -std=c++11 -lstdc++
-NISTFLAGS += -Wno-unused-result -O3 -fomit-frame-pointer
-RM = /bin/rm
+# ------------------------------------------------------------------------
+# Specify source files
+# ------------------------------------------------------------------------
 
 SOURCES = \
   kem.cpp \
@@ -39,24 +37,62 @@ HEADERS = \
   fips202.h \
   randombytes.h
 
+# ------------------------------------------------------------------------
+# Extract Vivado HLS include path
+# ------------------------------------------------------------------------
 
-.PHONY: all speed test clean
+XILINX_VIVADO?=/opt/xilinx/Vivado/2019.2
+XIL_HLS=source $(XILINX_VIVADO)/settings64.sh; vivado_hls
+VHLS_INC=$(XILINX_VIVADO)/include
 
-all: speed test
+# ------------------------------------------------------------------------
+# Compiler setup
+# ------------------------------------------------------------------------
 
-test: \
-  test/test_kyber512 \
+CC = /usr/bin/g++
+CFLAGS += -g -I${VHLS_INC} -DHLS_NO_XIL_FPO_LIB -O3 -lrt -std=c++11 -lstdc++
+NISTFLAGS += -Wno-unused-result -O3 -fomit-frame-pointer
+RM = /bin/rm
+
+MAKEFLAGS := --jobs=$(shell nproc)
+
+BUILD ?= build
+
+$(BUILD):
+	@mkdir build
+
+# ------------------------------------------------------------------------
+# Object file targets
+# ------------------------------------------------------------------------
+
+OBJECTS := $(addprefix $(BUILD)/,$(subst .cpp,.o,$(notdir $(SOURCES))))
+
+$(OBJECTS): $(BUILD)/%.o: %.cpp $(HEADERS) $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=2 -c $< -o $@
+
+.PHONY: clean
+
+all: speed func
 
 speed: \
-  test/test_speed512 \
+  build/test_speed512 \
+
+func: build/test_kyber
+
+csim: build/test_kyber build/test_speed512
+	./build/test_kyber
+	./build/test_speed512
 
 # shared: \
 #   lib/libpqcrystals_kyber512_hls.so \
 #   lib/libpqcrystals_kyber768_hls.so \
 #   lib/libpqcrystals_kyber1024_hls.so \
 
-test/test_speed512: test/test_speed.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_speed.cpp -o $@
+build/test_speed512: test/test_speed.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
+
+build/test_kyber: test/test_kyber.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
 
 test/test_kyber512: test/test_kyber.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_kyber.cpp -o $@
@@ -74,6 +110,14 @@ test/test_kyber512: test/test_kyber.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
 # 	$(CC) -shared -fPIC $(CFLAGS) -DKYBER_K=4 $(SOURCES) -o $@
 
 clean:
-	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so
-	-$(RM) -rf lib/
+	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so vivado_hls.log
+	-$(RM) -rf lib/ $(BUILD) *.prj
 
+# ------------------------------------------------------------------------
+# Synthesis
+# ------------------------------------------------------------------------
+
+TCL_SCRIPT ?= run.tcl
+
+synth:
+	$(XIL_HLS) -f $(TCL_SCRIPT)
