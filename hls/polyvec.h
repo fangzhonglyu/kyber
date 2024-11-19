@@ -9,6 +9,7 @@ typedef struct {
   poly vec[KYBER_K];
 } polyvec;
 
+void print_poly_vec(polyvec *p);
 void polyvec_compress(bit8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a);
 void polyvec_decompress(polyvec *r,
                         const bit8_t a[KYBER_POLYVECCOMPRESSEDBYTES]);

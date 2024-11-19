@@ -94,6 +94,9 @@ build/test_speed512: test/test_speed.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(B
 build/test_kyber: test/test_kyber.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
 	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
 
+test/test_kyber512: test/test_kyber.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_kyber.cpp -o $@
+
 # lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)
 # 	mkdir -p lib
 # 	$(CC) -shared -fPIC $(CFLAGS) -DKYBER_K=2 $(SOURCES) -o $@

@@ -3,6 +3,14 @@
 #include "poly.h"
 #include "polyvec.h"
 
+void print_poly_vec(polyvec *p){
+  printf("\n ====== PolyVec ======\n");
+  for(int i = 0; i < KYBER_K; i++){
+    print_poly(&p->vec[i]);
+  }
+  printf("\n =====================\n");
+}
+
 /*************************************************
 * Name:        polyvec_compress
 *
@@ -63,11 +71,18 @@ void polyvec_compress(uint8_t r[KYBER_POLYVECCOMPRESSEDBYTES], const polyvec *a)
         t[k] = d0 & 0x3ff;
       }
 
+      // for(int i = 0; i < 4; i++){
+      //   printf("t[%d]: %x\n", i, (int)t[i]);
+      // }
+
       r[0] = (t[0] >> 0);
       r[1] = (t[0] >> 8) | (t[1] << 2);
       r[2] = (t[1] >> 6) | (t[2] << 4);
       r[3] = (t[2] >> 4) | (t[3] << 6);
       r[4] = (t[3] >> 2);
+      // for(int i = 0; i < 5; i++){
+      //   printf("r[%d]: %x\n", i, (int)r[i]);
+      // }
       r += 5;
     }
   }

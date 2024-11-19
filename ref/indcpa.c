@@ -213,10 +213,11 @@ void indcpa_keypair_derand(uint8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
   uint8_t nonce = 0;
   polyvec a[KYBER_K], e, pkpv, skpv;
 
+  // memset(buf, 0, KYBER_SYMBYTES);
   memcpy(buf, coins, KYBER_SYMBYTES);
   buf[KYBER_SYMBYTES] = KYBER_K;
-  hash_g(buf, buf, KYBER_SYMBYTES+1);
 
+  hash_g(buf, buf, KYBER_SYMBYTES+1);
   gen_a(a, publicseed);
 
   for(i=0;i<KYBER_K;i++)
@@ -269,8 +270,10 @@ void indcpa_enc(uint8_t c[KYBER_INDCPA_BYTES],
   poly v, k, epp;
 
   unpack_pk(&pkpv, seed, pk);
+
   poly_frommsg(&k, m);
   gen_at(at, seed);
+
 
   for(i=0;i<KYBER_K;i++)
     poly_getnoise_eta1(sp.vec+i, coins, nonce++);

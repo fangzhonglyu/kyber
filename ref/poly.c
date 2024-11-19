@@ -7,6 +7,16 @@
 #include "symmetric.h"
 #include "verify.h"
 
+void print_poly(poly *p)
+{
+  printf("Poly: ");
+  for(int i = 0; i < KYBER_N; i++){
+    printf("%d ", p->coeffs[i]);
+  }
+  printf("\n");
+}
+
+
 /*************************************************
 * Name:        poly_compress
 *
@@ -31,6 +41,7 @@ void poly_compress(uint8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a)
       u  = a->coeffs[8*i+j];
       u += (u >> 15) & KYBER_Q;
 /*    t[j] = ((((uint16_t)u << 4) + KYBER_Q/2)/KYBER_Q) & 15; */
+
       d0 = u << 4;
       d0 += 1665;
       d0 *= 80635;
