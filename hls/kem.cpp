@@ -48,7 +48,7 @@ void crypto_kem_keypair_derand(bit8_t *pk, bit8_t *sk, const bit8_t *coins) {
  **************************************************/
 void crypto_kem_keypair(bit8_t *pk, bit8_t *sk) {
   bit8_t coins[2 * KYBER_SYMBYTES];
-  randombytes(coins, 2 * KYBER_SYMBYTES);
+  randombytes<2*KYBER_SYMBYTES>(coins);
   crypto_kem_keypair_derand(pk, sk, coins);
 }
 
@@ -105,7 +105,7 @@ void crypto_kem_enc_derand(bit8_t *ct, bit8_t *ss, const bit8_t *pk,
  **************************************************/
 void crypto_kem_enc(bit8_t *ct, bit8_t *ss, const bit8_t *pk) {
   bit8_t coins[KYBER_SYMBYTES];
-  randombytes(coins, KYBER_SYMBYTES);
+  randombytes<KYBER_SYMBYTES>(coins);
   crypto_kem_enc_derand(ct, ss, pk, coins);
 }
 

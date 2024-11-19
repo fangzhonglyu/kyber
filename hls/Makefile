@@ -3,42 +3,69 @@ XILINX_VIVADO?=/opt/xilinx/Vivado/2019.2
 XIL_HLS=source $(XILINX_VIVADO)/settings64.sh; vivado_hls
 VHLS_INC=$(XILINX_VIVADO)/include
 
-CC ?= /usr/bin/g++
+CC = /usr/bin/g++
 CFLAGS += -g -I${VHLS_INC} -DHLS_NO_XIL_FPO_LIB -O3 -lrt -std=c++11 -lstdc++
 NISTFLAGS += -Wno-unused-result -O3 -fomit-frame-pointer
 RM = /bin/rm
 
-SOURCES = kem.cpp indcpa.cpp polyvec.cpp poly.cpp ntt.cpp cbd.cpp reduce.cpp verify.cpp
-SOURCESKECCAK = $(SOURCES) fips202.cpp symmetric-shake.cpp
-HEADERS = params.h kem.h indcpa.h polyvec.h poly.h ntt.h cbd.h reduce.cpp verify.h symmetric.h
-HEADERSKECCAK = $(HEADERS) fips202.h
+SOURCES = \
+  kem.cpp \
+  indcpa.cpp \
+  polyvec.cpp \
+  poly.cpp ntt.cpp \
+  cbd.cpp reduce.cpp \
+  verify.cpp \
+  fips202.cpp \
+  symmetric-shake.cpp \
+  randombytes.cpp
 
-.PHONY: all speed shared clean
+TEST_FILES = \
+  test/cpucycles.cpp \
+  test/speed_print.cpp \
+  test/cpucycles.h \
+  test/speed_print.h \
 
-all: speed shared nistkat
+HEADERS = \
+  params.h \
+  kem.h \
+  indcpa.h \
+  polyvec.h \
+  poly.h \
+  ntt.h \
+  cbd.h \
+  reduce.cpp \
+  verify.h \
+  symmetric.h \
+  fips202.h \
+  randombytes.h
 
-shared: \
-  lib/libpqcrystals_kyber512_hls.o \
-  lib/libpqcrystals_kyber768_hls.o \
-  lib/libpqcrystals_kyber1024_hls.o \
-  lib/libpqcrystals_fips202_hls.o \
 
+.PHONY: all speed clean
 
-lib/libpqcrystals_fips202_hls.o: fips202.cpp fips202.h
-	mkdir -p lib
-	$(CC) $(CFLAGS) fips202.cpp -o $@
+all: speed
 
-lib/libpqcrystals_kyber512_hls.o: $(SOURCES) $(HEADERS) symmetric-shake.cpp
-	mkdir -p lib
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(SOURCES) symmetric-shake.cpp -o $@
+speed: \
+  test/test_speed512 \
 
-lib/libpqcrystals_kyber768_hls.o: $(SOURCES) $(HEADERS) symmetric-shake.cpp
-	mkdir -p lib
-	$(CC) $(CFLAGS) -DKYBER_K=3 $(SOURCES) symmetric-shake.cpp -o $@
+# shared: \
+#   lib/libpqcrystals_kyber512_hls.so \
+#   lib/libpqcrystals_kyber768_hls.so \
+#   lib/libpqcrystals_kyber1024_hls.so \
 
-lib/libpqcrystals_kyber1024_hls.o: $(SOURCES) $(HEADERS) symmetric-shake.cpp
-	mkdir -p lib
-	$(CC) $(CFLAGS) -DKYBER_K=4 $(SOURCES) symmetric-shake.cpp -o $@
+test/test_speed512: test/test_speed.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_speed.cpp -o $@
+
+# lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)
+# 	mkdir -p lib
+# 	$(CC) -shared -fPIC $(CFLAGS) -DKYBER_K=2 $(SOURCES) -o $@
+
+# lib/libpqcrystals_kyber768_hls.so: $(SOURCES) $(HEADERS) 
+# 	mkdir -p lib
+# 	$(CC) -shared -fPIC $(CFLAGS) -DKYBER_K=3 $(SOURCES) -o $@
+
+# lib/libpqcrystals_kyber1024_hls.so: $(SOURCES) $(HEADERS) 
+# 	mkdir -p lib
+# 	$(CC) -shared -fPIC $(CFLAGS) -DKYBER_K=4 $(SOURCES) -o $@
 
 clean:
 	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so
