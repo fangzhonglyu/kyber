@@ -23,7 +23,10 @@
 static void pack_pk(bit8_t r[KYBER_INDCPA_PUBLICKEYBYTES], polyvec *pk,
                     const bit8_t seed[KYBER_SYMBYTES]) {
   polyvec_tobytes(r, pk);
-  memcpy(r + KYBER_POLYVECBYTES, seed, KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    r[KYBER_POLYVECBYTES + i] = seed[i];
+  }
+  //memcpy(r + KYBER_POLYVECBYTES, seed, KYBER_SYMBYTES);
 }
 
 /*************************************************
@@ -39,7 +42,10 @@ static void pack_pk(bit8_t r[KYBER_INDCPA_PUBLICKEYBYTES], polyvec *pk,
 static void unpack_pk(polyvec *pk, bit8_t seed[KYBER_SYMBYTES],
                       const bit8_t packedpk[KYBER_INDCPA_PUBLICKEYBYTES]) {
   polyvec_frombytes(pk, packedpk);
-  memcpy(seed, packedpk + KYBER_POLYVECBYTES, KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    seed[i] = packedpk[KYBER_POLYVECBYTES + i];
+  }
+  // memcpy(seed, packedpk + KYBER_POLYVECBYTES, KYBER_SYMBYTES);
 }
 
 /*************************************************
@@ -207,7 +213,11 @@ void indcpa_keypair_derand(bit8_t pk[KYBER_INDCPA_PUBLICKEYBYTES],
   bit8_t nonce = 0;
   polyvec a[KYBER_K], e, pkpv, skpv;
 
-  memcpy(buf, coins, KYBER_SYMBYTES);
+  //memset(buf, 0, KYBER_SYMBYTES);
+  for (i = 0; i < KYBER_SYMBYTES; i++) {
+    buf[i] = 0;
+  }
+  // memcpy(buf, coins, KYBER_SYMBYTES);
   buf[KYBER_SYMBYTES] = KYBER_K;
   hash_g(buf, buf, KYBER_SYMBYTES + 1);
 

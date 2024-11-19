@@ -21,7 +21,10 @@ void kyber_shake128_absorb(keccak_state *state,
                            bit8_t y) {
   bit8_t extseed[KYBER_SYMBYTES + 2];
 
-  memcpy(extseed, seed, KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    extseed[i] = seed[i];
+  }
+  // memcpy(extseed, seed, KYBER_SYMBYTES);
   extseed[KYBER_SYMBYTES + 0] = x;
   extseed[KYBER_SYMBYTES + 1] = y;
 
@@ -44,7 +47,10 @@ void kyber_shake256_prf(bit8_t *out, bit32_t outlen,
                         const bit8_t key[KYBER_SYMBYTES], bit8_t nonce) {
   bit8_t extkey[KYBER_SYMBYTES + 1];
 
-  memcpy(extkey, key, KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    extkey[i] = key[i];
+  }
+  // memcpy(extkey, key, KYBER_SYMBYTES);
   extkey[KYBER_SYMBYTES] = nonce;
 
   shake256(out, outlen, extkey, sizeof(extkey));

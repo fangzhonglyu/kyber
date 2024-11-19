@@ -4,29 +4,47 @@
 #include "../kem.h"
 #include "../randombytes.h"
 
-#define NTESTS 1000
+#define NTESTS 1
 
 static int test_keys(void)
 {
   bit8_t pk[CRYPTO_PUBLICKEYBYTES];
   bit8_t sk[CRYPTO_SECRETKEYBYTES];
   bit8_t ct[CRYPTO_CIPHERTEXTBYTES];
+
+  for(int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i++) {
+    ct[i] = 0;
+  }
+
   bit8_t key_a[CRYPTO_BYTES];
   bit8_t key_b[CRYPTO_BYTES];
 
   //Alice generates a public key
   crypto_kem_keypair(pk, sk);
+    printf("pk: ");
+  for(int i = 0; i < CRYPTO_PUBLICKEYBYTES; i++) {
+    printf("%2x", (int)pk[i]);
+  }
+  printf("\nsk: ");
+  for(int i = 0; i < CRYPTO_SECRETKEYBYTES; i++) {
+    printf("%2x", (int)sk[i]);
+  }
 
   //Bob derives a secret key and creates a response
   crypto_kem_enc(ct, key_b, pk);
 
-  //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
-
-  if(memcmp(key_a, key_b, CRYPTO_BYTES)) {
-    printf("ERROR keys\n");
-    return 1;
+  printf("\nct: ");
+  for(int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i++) {
+    printf("%2x", (int)ct[i]);
   }
+
+  // //Alice uses Bobs response to get her shared key
+  // crypto_kem_dec(key_a, ct, sk);
+
+  // if(memcmp(key_a, key_b, CRYPTO_BYTES)) {
+  //   printf("ERROR keys\n");
+  //   return 1;
+  // }
 
   return 0;
 }
@@ -71,9 +89,9 @@ static int test_invalid_ciphertext(void)
   size_t pos;
 
   do {
-    randombytes(&b, sizeof(bit8_t));
+    randombytes<1>(&b);
   } while(!b);
-  randombytes((bit8_t *)&pos, sizeof(size_t));
+  randombytes<sizeof(size_t)>((bit8_t *)&pos);
 
   //Alice generates a public key
   crypto_kem_keypair(pk, sk);

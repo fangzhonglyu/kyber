@@ -12,6 +12,8 @@ typedef struct {
   sbit16_t coeffs[KYBER_N];
 } poly;
 
+void print_poly(poly *p);
+
 #define poly_compress KYBER_NAMESPACE(poly_compress)
 void poly_compress(bit8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a);
 #define poly_decompress KYBER_NAMESPACE(poly_decompress)

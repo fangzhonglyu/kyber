@@ -1,10 +1,20 @@
 #ifndef PARAMS_H
 #define PARAMS_H
 
+#include <stdio.h>
+
 #ifndef KYBER_K
 #define KYBER_K 3	/* Change this for different security strengths */
 #endif
 
+#ifndef PRINT_UINT_ARR
+#define PRINT_UINT_ARR(name, arr, len) \
+  printf("\n%s: ", (name)); \
+  for (int ii = 0; ii < (len); ii++) { \
+    printf("%2x ", (arr)[ii]); \
+  } \
+  printf("\n");
+#endif
 
 /* Don't change parameters below this line */
 #if   (KYBER_K == 2)

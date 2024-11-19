@@ -40,9 +40,12 @@ HEADERS = \
   randombytes.h
 
 
-.PHONY: all speed clean
+.PHONY: all speed test clean
 
-all: speed
+all: speed test
+
+test: \
+  test/test_kyber512 \
 
 speed: \
   test/test_speed512 \
@@ -54,6 +57,9 @@ speed: \
 
 test/test_speed512: test/test_speed.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_speed.cpp -o $@
+
+test/test_kyber512: test/test_kyber.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_kyber.cpp -o $@
 
 # lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)
 # 	mkdir -p lib

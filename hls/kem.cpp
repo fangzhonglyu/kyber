@@ -25,12 +25,18 @@
  **************************************************/
 void crypto_kem_keypair_derand(bit8_t *pk, bit8_t *sk, const bit8_t *coins) {
   indcpa_keypair_derand(pk, sk, coins);
-  memcpy(sk + KYBER_INDCPA_SECRETKEYBYTES, pk, KYBER_PUBLICKEYBYTES);
+  for (int i = 0; i < KYBER_PUBLICKEYBYTES; i++) {
+    sk[i + KYBER_INDCPA_SECRETKEYBYTES] = pk[i];
+  }
+  //memcpy(sk + KYBER_INDCPA_SECRETKEYBYTES, pk, KYBER_PUBLICKEYBYTES);
   hash_h(sk + KYBER_SECRETKEYBYTES - 2 * KYBER_SYMBYTES, pk,
          KYBER_PUBLICKEYBYTES);
   /* Value z for pseudo-random output on reject */
-  memcpy(sk + KYBER_SECRETKEYBYTES - KYBER_SYMBYTES, coins + KYBER_SYMBYTES,
-         KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    sk[i + KYBER_SECRETKEYBYTES - KYBER_SYMBYTES] = coins[i + KYBER_SYMBYTES];
+  }
+  // memcpy(sk + KYBER_SECRETKEYBYTES - KYBER_SYMBYTES, coins + KYBER_SYMBYTES,
+  //        KYBER_SYMBYTES);
 }
 
 /*************************************************
@@ -48,7 +54,10 @@ void crypto_kem_keypair_derand(bit8_t *pk, bit8_t *sk, const bit8_t *coins) {
  **************************************************/
 void crypto_kem_keypair(bit8_t *pk, bit8_t *sk) {
   bit8_t coins[2 * KYBER_SYMBYTES];
-  randombytes<2*KYBER_SYMBYTES>(coins);
+  for(int i = 0; i < 2 * KYBER_SYMBYTES; i++) {
+    coins[i] = 0;
+  }
+  // randombytes<2*KYBER_SYMBYTES>(coins);
   crypto_kem_keypair_derand(pk, sk, coins);
 }
 
@@ -76,16 +85,27 @@ void crypto_kem_enc_derand(bit8_t *ct, bit8_t *ss, const bit8_t *pk,
   /* Will contain key, coins */
   bit8_t kr[2 * KYBER_SYMBYTES];
 
-  memcpy(buf, coins, KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    buf[i] = 0;
+  }
+  //memcpy(buf, coins, KYBER_SYMBYTES);
 
   /* Multitarget countermeasure for coins + contributory KEM */
   hash_h(buf + KYBER_SYMBYTES, pk, KYBER_PUBLICKEYBYTES);
+
+  PRINT_UINT_ARR("buf_enc", buf, 2 * KYBER_SYMBYTES);
+
   hash_g(kr, buf, 2 * KYBER_SYMBYTES);
+
+  PRINT_UINT_ARR("kr_enc", kr, 2 * KYBER_SYMBYTES);
 
   /* coins are in kr+KYBER_SYMBYTES */
   indcpa_enc(ct, buf, pk, kr + KYBER_SYMBYTES);
 
-  memcpy(ss, kr, KYBER_SYMBYTES);
+  for (int i = 0; i < KYBER_SYMBYTES; i++) {
+    ss[i] = kr[i];
+  }
+  //memcpy(ss, kr, KYBER_SYMBYTES);
 }
 
 /*************************************************
@@ -104,8 +124,8 @@ void crypto_kem_enc_derand(bit8_t *ct, bit8_t *ss, const bit8_t *pk,
  * Returns 0 (success)
  **************************************************/
 void crypto_kem_enc(bit8_t *ct, bit8_t *ss, const bit8_t *pk) {
-  bit8_t coins[KYBER_SYMBYTES];
-  randombytes<KYBER_SYMBYTES>(coins);
+  bit8_t coins[KYBER_SYMBYTES] = {0};
+  // randombytes<KYBER_SYMBYTES>(coins);
   crypto_kem_enc_derand(ct, ss, pk, coins);
 }
 
@@ -137,8 +157,10 @@ void crypto_kem_dec(bit8_t *ss, const bit8_t *ct, const bit8_t *sk) {
   indcpa_dec(buf, ct, sk);
 
   /* Multitarget countermeasure for coins + contributory KEM */
-  memcpy(buf + KYBER_SYMBYTES, sk + KYBER_SECRETKEYBYTES - 2 * KYBER_SYMBYTES,
-         KYBER_SYMBYTES);
+  for(int i = 0; i < KYBER_SYMBYTES; i++) {
+    buf[i + KYBER_SYMBYTES] = sk[i + KYBER_SECRETKEYBYTES - 2 * KYBER_SYMBYTES];
+  }
+
   hash_g(kr, buf, 2 * KYBER_SYMBYTES);
 
   /* coins are in kr+KYBER_SYMBYTES */
