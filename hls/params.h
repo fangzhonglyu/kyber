@@ -5,15 +5,6 @@
 #define KYBER_K 3	/* Change this for different security strengths */
 #endif
 
-#ifndef PRINT_UINT_ARR
-#define PRINT_UINT_ARR(name, arr, len) \
-  printf("\n%s: ", (name)); \
-  for (int ii = 0; ii < (len); ii++) { \
-    printf("%2x ", (int)(arr)[ii]); \
-  } \
-  printf("\n");
-#endif
-
 /* Don't change parameters below this line */
 #define KYBER_N 256
 #define KYBER_Q 3329

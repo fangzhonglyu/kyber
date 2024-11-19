@@ -17,7 +17,7 @@ int verify(const bit8_t *a, const bit8_t *b, bit32_t len) {
 
   for (i = 0; i < len; i++) r |= a[i] ^ b[i];
 
-  return (-(uint64_t)r) >> 63;
+  return (-(bit64_t)r) >> 63;
 }
 
 /*************************************************

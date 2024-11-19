@@ -118,17 +118,16 @@ static void unpack_ciphertext(polyvec *b, poly *v,
  *q)
  *              - const bit8_t *buf: pointer to input buffer (assumed to be
  *uniformly random bytes)
- *              - bit32_t buflen: length of input buffer in bytes
  *
  * Returns number of sampled 16-bit integers (at most len)
  **************************************************/
-static bit32_t rej_uniform(sbit16_t *r, bit32_t len, const bit8_t *buf,
-                           bit32_t buflen) {
+template<int BUF_LEN>
+static bit32_t rej_uniform(sbit16_t *r, bit32_t len, const bit8_t *buf) {
   bit32_t ctr, pos;
   bit16_t val0, val1;
 
   ctr = pos = 0;
-  while (ctr < len && pos + 3 <= buflen) {
+  while (ctr < len && pos + 3 <= BUF_LEN) {
     val0 = ((buf[pos + 0] >> 0) | ((bit16_t)buf[pos + 1] << 8)) & 0xFFF;
     val1 = ((buf[pos + 1] >> 4) | ((bit16_t)buf[pos + 2] << 4)) & 0xFFF;
     pos += 3;
@@ -165,7 +164,6 @@ static bit32_t rej_uniform(sbit16_t *r, bit32_t len, const bit8_t *buf,
 // Not static for benchmarking
 void gen_matrix(polyvec *a, const bit8_t seed[KYBER_SYMBYTES], bit transposed) {
   bit32_t ctr, i, j;
-  bit32_t buflen;
   bit8_t buf[GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES];
   xof_state state;
 
@@ -177,14 +175,12 @@ void gen_matrix(polyvec *a, const bit8_t seed[KYBER_SYMBYTES], bit transposed) {
         xof_absorb(&state, seed, j, i);
 
       xof_squeezeblocks(buf, GEN_MATRIX_NBLOCKS, &state);
-      buflen = GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES;
-      ctr = rej_uniform(a[i].vec[j].coeffs, KYBER_N, buf, buflen);
+      ctr = rej_uniform<GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES>(a[i].vec[j].coeffs, KYBER_N, buf);
 
       while (ctr < KYBER_N) {
         xof_squeezeblocks(buf, 1, &state);
-        buflen = XOF_BLOCKBYTES;
         ctr +=
-            rej_uniform(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf, buflen);
+            rej_uniform<XOF_BLOCKBYTES>(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf);
       }
     }
   }

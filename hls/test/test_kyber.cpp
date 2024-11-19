@@ -4,7 +4,7 @@
 #include "../kem.h"
 #include "../randombytes.h"
 
-#define NTESTS 1
+#define NTESTS 10
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -12,6 +12,15 @@
 #define ANSI_COLOR_MAGENTA "\x1b[35m"
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_RESET   "\x1b[0m"
+
+#ifndef PRINT_UINT_ARR
+#define PRINT_UINT_ARR(name, arr, len) \
+  printf("\n%s: ", (name)); \
+  for (int ii = 0; ii < (len); ii++) { \
+    printf("%2x ", (int)(arr)[ii]); \
+  } \
+  printf("\n");
+#endif
 
 static int test_keys(void)
 {

@@ -3,14 +3,6 @@
 #include "params.h"
 #include "poly.h"
 
-void print_poly_vec(polyvec *p){
-  printf("\n ====== PolyVec ======\n");
-  for(int i = 0; i < KYBER_K; i++){
-    print_poly(&p->vec[i]);
-  }
-  printf("\n =====================\n");
-}
-
 /*************************************************
  * Name:        polyvec_compress
  *
