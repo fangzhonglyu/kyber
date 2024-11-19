@@ -71,9 +71,9 @@ static int test_invalid_ciphertext(void)
   size_t pos;
 
   do {
-    randombytes(&b, sizeof(bit8_t));
+    randombytes<sizeof(bit8_t)>(&b);
   } while(!b);
-  randombytes((bit8_t *)&pos, sizeof(size_t));
+  randombytes<sizeof(size_t)>((bit8_t *)&pos);
 
   //Alice generates a public key
   crypto_kem_keypair(pk, sk);

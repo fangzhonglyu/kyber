@@ -70,12 +70,14 @@ OBJECTS := $(addprefix $(BUILD)/,$(subst .cpp,.o,$(notdir $(SOURCES))))
 $(OBJECTS): $(BUILD)/%.o: %.cpp $(HEADERS) $(BUILD)
 	$(CC) $(CFLAGS) -DKYBER_K=2 -c $< -o $@
 
-.PHONY: all speed clean
+.PHONY: clean
 
-all: speed
+all: speed func
 
 speed: \
   build/test_speed512 \
+
+func: build/test_kyber
 
 # shared: \
 #   lib/libpqcrystals_kyber512_hls.so \
@@ -83,7 +85,10 @@ speed: \
 #   lib/libpqcrystals_kyber1024_hls.so \
 
 build/test_speed512: test/test_speed.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) test/test_speed.cpp -o $@
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
+
+build/test_kyber: test/test_kyber.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
 
 # lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)
 # 	mkdir -p lib
