@@ -79,6 +79,10 @@ speed: \
 
 func: build/test_kyber
 
+csim: build/test_kyber build/test_speed512
+	./build/test_kyber
+	./build/test_speed512
+
 # shared: \
 #   lib/libpqcrystals_kyber512_hls.so \
 #   lib/libpqcrystals_kyber768_hls.so \
