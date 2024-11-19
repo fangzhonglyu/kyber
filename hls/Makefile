@@ -103,6 +103,14 @@ build/test_kyber: test/test_kyber.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUIL
 # 	$(CC) -shared -fPIC $(CFLAGS) -DKYBER_K=4 $(SOURCES) -o $@
 
 clean:
-	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so
-	-$(RM) -rf lib/ $(BUILD)
+	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so vivado_hls.log
+	-$(RM) -rf lib/ $(BUILD) *.prj
 
+# ------------------------------------------------------------------------
+# Synthesis
+# ------------------------------------------------------------------------
+
+TCL_SCRIPT ?= run.tcl
+
+synth:
+	$(XIL_HLS) -f $(TCL_SCRIPT)
