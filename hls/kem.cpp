@@ -57,7 +57,7 @@ void crypto_kem_keypair(bit8_t *pk, bit8_t *sk) {
   for(int i = 0; i < 2 * KYBER_SYMBYTES; i++) {
     coins[i] = 0;
   }
-  // randombytes<2*KYBER_SYMBYTES>(coins);
+  randombytes<2*KYBER_SYMBYTES>(coins);
   crypto_kem_keypair_derand(pk, sk, coins);
 }
 

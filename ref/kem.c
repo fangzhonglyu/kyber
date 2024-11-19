@@ -114,8 +114,8 @@ int crypto_kem_enc(uint8_t *ct,
                    uint8_t *ss,
                    const uint8_t *pk)
 {
-  uint8_t coins[KYBER_SYMBYTES] = {0};
-  // randombytes(coins, KYBER_SYMBYTES);
+  uint8_t coins[KYBER_SYMBYTES];
+  randombytes(coins, KYBER_SYMBYTES);
   crypto_kem_enc_derand(ct, ss, pk, coins);
   return 0;
 }
