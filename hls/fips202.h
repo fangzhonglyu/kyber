@@ -369,14 +369,14 @@ static bit32_t keccak_absorb(bit64_t s[25], bit32_t pos,
 
   while(pos+il >= r) {
     for(i=pos;i<r;i++)
-      s[i/8] ^= (uint64_t)*in++ << 8*(i%8);
+      s[i/8] ^= (bit64_t)*in++ << 8*(i%8);
     il -= r-pos;
     KeccakF1600_StatePermute(s);
     pos = 0;
   }
 
   for(i=pos;i<pos+il;i++)
-    s[i/8] ^= (uint64_t)*in++ << 8*(i%8);
+    s[i/8] ^= (bit64_t)*in++ << 8*(i%8);
 
   return i;
 }
@@ -446,7 +446,7 @@ static bit32_t keccak_squeeze(bit8_t *out, bit64_t s[25], bit32_t pos) {
  *              - bit8_t p: domain-separation byte for different Keccak-derived
  *functions
  **************************************************/
-template <int r, int inlen, uint8_t p>
+template <int r, int inlen, int p>
 static void keccak_absorb_once(bit64_t s[25], const bit8_t *in) {
   bit32_t i;
 
@@ -463,9 +463,9 @@ static void keccak_absorb_once(bit64_t s[25], const bit8_t *in) {
   }
 
   for(i=0;i<il;i++)
-    s[i/8] ^= (uint64_t)in[i] << 8*(i%8);
+    s[i/8] ^= (bit64_t)in[i] << 8*(i%8);
 
-  s[i/8] ^= (uint64_t)p << 8*(i%8);
+  s[i/8] ^= (bit64_t)((bit8_t) p) << 8*(i%8);
   s[(r-1)/8] ^= 1ULL << 63;
 }
 
