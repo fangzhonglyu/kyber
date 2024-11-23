@@ -1,8 +1,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "../kem.h"
-#include "../randombytes.h"
+#include "../top.h"
 
 #define NTESTS 10
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -22,6 +21,19 @@
   printf("\n");
 #endif
 
+
+bit8_t lfsr_random(bit8_t seed);
+
+template <int L>
+void gen_randombytes(bit8_t out[L]) {
+  static bit8_t seed = 0xc0;
+  for (int i = 0; i < L; i++) {
+    out[i] = lfsr_random(seed);
+    seed = out[i];
+  }
+}
+
+
 static int test_keys(void)
 {
   bit8_t pk[CRYPTO_PUBLICKEYBYTES];
@@ -36,17 +48,17 @@ static int test_keys(void)
   bit8_t key_b[CRYPTO_BYTES];
 
   //Alice generates a public key
-  crypto_kem_keypair(pk, sk);
+  keypair(pk, sk);
   PRINT_UINT_ARR("pk", pk, CRYPTO_PUBLICKEYBYTES);
   PRINT_UINT_ARR("sk", sk, CRYPTO_SECRETKEYBYTES);
 
   //Bob derives a secret key and creates a response
-  crypto_kem_enc(ct, key_b, pk);
+  enc(ct, key_b, pk);
 
   PRINT_UINT_ARR("ct", ct, CRYPTO_CIPHERTEXTBYTES);
 
   //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
+  dec(key_a, ct, sk);
 
   for(int i = 0; i < CRYPTO_BYTES; i++) {
     if(key_a[i] != key_b[i]) {
@@ -74,17 +86,17 @@ static int test_invalid_sk_a(void)
   bit8_t key_b[CRYPTO_BYTES];
 
   //Alice generates a public key
-  crypto_kem_keypair(pk, sk);
+  keypair(pk, sk);
 
   //Bob derives a secret key and creates a response
-  crypto_kem_enc(ct, key_b, pk);
+  enc(ct, key_b, pk);
 
   //Replace secret key with random values
 
-  randombytes<CRYPTO_SECRETKEYBYTES>(sk);
+  gen_randombytes<CRYPTO_SECRETKEYBYTES>(sk);
 
   //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
+  dec(key_a, ct, sk);
 
   if(!memcmp(key_a, key_b, CRYPTO_BYTES)) {
     printf("ERROR invalid sk\n");
@@ -105,21 +117,21 @@ static int test_invalid_ciphertext(void)
   size_t pos;
 
   do {
-    randombytes<sizeof(bit8_t)>(&b);
+    gen_randombytes<sizeof(bit8_t)>(&b);
   } while(!b);
-  randombytes<sizeof(size_t)>((bit8_t *)&pos);
+  gen_randombytes<sizeof(size_t)>((bit8_t *)&pos);
 
   //Alice generates a public key
-  crypto_kem_keypair(pk, sk);
+  keypair(pk, sk);
 
   //Bob derives a secret key and creates a response
-  crypto_kem_enc(ct, key_b, pk);
+  enc(ct, key_b, pk);
 
   //Change some byte in the ciphertext (i.e., encapsulated key)
   ct[pos % CRYPTO_CIPHERTEXTBYTES] ^= b;
 
   //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
+  dec(key_a, ct, sk);
 
   if(!memcmp(key_a, key_b, CRYPTO_BYTES)) {
     printf("ERROR invalid ciphertext\n");

@@ -56,4 +56,16 @@ void dut_enc(hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out) {
   }
 }
 
+void enc(bit8_t *ct, bit8_t *ss, const bit8_t *pk) {
+  crypto_kem_enc(ct, ss, pk);
+}
+
+void dec(bit8_t *ss, const bit8_t *ct, const bit8_t *sk) {
+  crypto_kem_dec(ss, ct, sk);
+}
+
+void keypair(bit8_t *pk, bit8_t *sk) {
+  crypto_kem_keypair(pk, sk);
+}
+
 #endif  // TOP_H
