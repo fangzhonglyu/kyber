@@ -14,17 +14,27 @@ set_top dut_ntt
 
 # Add source files
 add_files "top-ntt.cpp \
-          ntt.cpp \
+          ntt-fpga.cpp \
           reduce.cpp" \
           -cflags "-std=c++11"
 
 # Add testbench files
-# add_files -tb "test/cpucycles.cpp \
-#               test/speed_print.cpp \
-#               test/cpucycles.h \
-#               test/speed_print.h \
-#               test/test_kyber.cpp" \
-#               -cflags "-std=c++11"
+add_files -tb "kem.cpp \
+              indcpa.cpp \
+              polyvec.cpp \
+              poly.cpp \
+              cbd.cpp \
+              reduce.cpp \
+              verify.cpp \
+              fips202.cpp \
+              symmetric-shake.cpp \
+              randombytes.cpp \
+              test/cpucycles.cpp \
+              test/speed_print.cpp \
+              test/cpucycles.h \
+              test/speed_print.h \
+              test/test_kyber.cpp" \
+              -cflags "-std=c++11"
 
 open_solution "solution1"
 # Use Zynq device
@@ -38,7 +48,7 @@ create_clock -period 10
 ############################################
 
 # Simulate the C++ design
-# csim_design -O
+csim_design -O
 # Synthesize the design
 csynth_design
 # Co-simulate the design

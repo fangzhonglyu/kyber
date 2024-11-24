@@ -16,6 +16,8 @@ set_top dut_ntt
 add_files "top.cpp \
           kem.cpp \
           indcpa.cpp \
+          polyvec.cpp \
+          poly.cpp \
           ntt.cpp \
           cbd.cpp \
           reduce.cpp \
