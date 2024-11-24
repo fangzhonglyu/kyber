@@ -121,3 +121,6 @@ TCL_SCRIPT ?= run.tcl
 
 synth:
 	$(XIL_HLS) -f $(TCL_SCRIPT)
+
+synth-ntt:
+	$(XIL_HLS) -f run-ntt.tcl
