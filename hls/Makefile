@@ -124,3 +124,6 @@ synth:
 
 synth-ntt:
 	$(XIL_HLS) -f run-ntt.tcl
+
+synth-ntt-opt:
+	$(XIL_HLS) -f run-ntt-opt.tcl
