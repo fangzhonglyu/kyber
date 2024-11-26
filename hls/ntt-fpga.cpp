@@ -76,22 +76,54 @@ static sbit16_t fqmul( sbit16_t a, sbit16_t b )
  * Arguments:   - sbit16_t r[256]: pointer to input/output vector of
  *elements of Zq
  **************************************************/
-void ntt_fpga( sbit16_t r[256] )
+template <int LEN, int K>
+void ntt_fpga_helper( sbit16_t r[256] )
 {
-  bit32_t  len, start, j, k;
+  bit32_t  start, j, j_loop, k;
   sbit16_t t, zeta;
 
-  k = 1;
-  for ( len = 128; len >= 2; len >>= 1 ) {
-    for ( start = 0; start < 256; start = j + len ) {
-      zeta = zetas[k++];
-      for ( j = start; j < start + len; j++ ) {
-        t          = fqmul( zeta, r[j + len] );
-        r[j + len] = r[j] - t;
+  k = K;
+  for ( start = 0; start < 256; start += ( 2 * LEN ) ) {
+    zeta = zetas[k++];
+    for ( j_loop = 0; j_loop < 128; j_loop++ ) {
+      j = j_loop + start;
+      if ( j < start + LEN ) {
+        t          = fqmul( zeta, r[j + LEN] );
+        r[j + LEN] = r[j] - t;
         r[j]       = r[j] + t;
       }
     }
   }
+}
+
+void ntt_fpga( sbit16_t r[256] )
+{
+  // bit32_t  len, start, j, j_loop, k;
+  // sbit16_t t, zeta;
+
+  // k = 1;
+  // for ( len = 128; len >= 2; len >>= 1 ) {
+  //   for ( start = 0; start < 256; start += 4 ) {
+  //     if ( start % ( 2 * len ) == 0 ) {
+  //       zeta = zetas[k++];
+  //       for ( j_loop = 0; j_loop < 128; j_loop++ ) {
+  //         j = j_loop + start;
+  //         if ( j < start + len ) {
+  //           t          = fqmul( zeta, r[j + len] );
+  //           r[j + len] = r[j] - t;
+  //           r[j]       = r[j] + t;
+  //         }
+  //       }
+  //     }
+  //   }
+  // }
+  ntt_fpga_helper<128, 1>( r );
+  ntt_fpga_helper<64, 2>( r );
+  ntt_fpga_helper<32, 4>( r );
+  ntt_fpga_helper<16, 8>( r );
+  ntt_fpga_helper<8, 16>( r );
+  ntt_fpga_helper<4, 32>( r );
+  ntt_fpga_helper<2, 64>( r );
 }
 
 /*************************************************
@@ -104,24 +136,54 @@ void ntt_fpga( sbit16_t r[256] )
  * Arguments:   - sbit16_t r[256]: pointer to input/output vector of
  *elements of Zq
  **************************************************/
-void invntt_fpga( sbit16_t r[256] )
+template <int LEN, int K>
+void invntt_fpga_helper( sbit16_t r[256] )
 {
-  bit32_t        start, len, j, k;
+  bit32_t        start, j, j_loop, k;
   sbit16_t       t, zeta;
   const sbit16_t f = 1441;  // mont^2/128
 
-  k = 127;
-  for ( len = 2; len <= 128; len <<= 1 ) {
-    for ( start = 0; start < 256; start = j + len ) {
-      zeta = zetas[k--];
-      for ( j = start; j < start + len; j++ ) {
+  k = K;
+  for ( start = 0; start < 256; start += ( 2 * LEN ) ) {
+    zeta = zetas[k--];
+    for ( j_loop = 0; j_loop < 128; j_loop++ ) {
+      j = j_loop + start;
+      if ( j < start + LEN ) {
         t          = r[j];
-        r[j]       = barrett_reduce( t + r[j + len] );
-        r[j + len] = r[j + len] - t;
-        r[j + len] = fqmul( zeta, r[j + len] );
+        r[j]       = barrett_reduce( t + r[j + LEN] );
+        r[j + LEN] = r[j + LEN] - t;
+        r[j + LEN] = fqmul( zeta, r[j + LEN] );
       }
     }
   }
+}
+
+void invntt_fpga( sbit16_t r[256] )
+{
+  // bit32_t        start, len, j, k;
+  // sbit16_t       t, zeta;
+  bit32_t        j;
+  const sbit16_t f = 1441;  // mont^2/128
+
+  // k = 127;
+  // for ( len = 2; len <= 128; len <<= 1 ) {
+  //   for ( start = 0; start < 256; start = j + len ) {
+  //     zeta = zetas[k--];
+  //     for ( j = start; j < start + len; j++ ) {
+  //       t          = r[j];
+  //       r[j]       = barrett_reduce( t + r[j + len] );
+  //       r[j + len] = r[j + len] - t;
+  //       r[j + len] = fqmul( zeta, r[j + len] );
+  //     }
+  //   }
+  // }
+  invntt_fpga_helper<2, 127>( r );
+  invntt_fpga_helper<4, 63>( r );
+  invntt_fpga_helper<8, 31>( r );
+  invntt_fpga_helper<16, 15>( r );
+  invntt_fpga_helper<32, 7>( r );
+  invntt_fpga_helper<64, 3>( r );
+  invntt_fpga_helper<128, 1>( r );
 
   for ( j = 0; j < 256; j++ )
     r[j] = fqmul( r[j], f );

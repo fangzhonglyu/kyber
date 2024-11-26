@@ -13,8 +13,7 @@ open_project ${hls_prj} -reset
 set_top dut_ntt
 
 # Add source files
-add_files "top-ntt.cpp \
-          ntt-fpga.cpp \
+add_files "ntt-fpga.cpp \
           reduce.cpp" \
           -cflags "-std=c++11"
 
