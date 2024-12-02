@@ -1,9 +1,11 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include "../params.h"
+#include "../typedefs.h"
 #include "../randombytes.h"
 
-#define NTESTS 1
+#define NTESTS 100
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -21,42 +23,107 @@
   printf("\n");
 #endif
 
-static int test_keys(void)
-{
-  bit8_t pk[CRYPTO_PUBLICKEYBYTES];
-  bit8_t sk[CRYPTO_SECRETKEYBYTES];
-  bit8_t ct[CRYPTO_CIPHERTEXTBYTES];
 
-  for(int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i++) {
-    ct[i] = 0;
+const sbit16_t zetas[128] = {
+    -1044, -758,  -359,  -1517, 1493,  1422,  287,   202,  -171,  622,   1577,
+    182,   962,   -1202, -1474, 1468,  573,   -1325, 264,  383,   -829,  1458,
+    -1602, -130,  -681,  1017,  732,   608,   -1542, 411,  -205,  -1571, 1223,
+    652,   -552,  1015,  -1293, 1491,  -282,  -1544, 516,  -8,    -320,  -666,
+    -1618, -1162, 126,   1469,  -853,  -90,   -271,  830,  107,   -1421, -247,
+    -951,  -398,  961,   -1508, -725,  448,   -1065, 677,  -1275, -1103, 430,
+    555,   843,   -1251, 871,   1550,  105,   422,   587,  177,   -235,  -291,
+    -460,  1574,  1653,  -246,  778,   1159,  -147,  -777, 1483,  -602,  1119,
+    -1590, 644,   -872,  349,   418,   329,   -156,  -75,  817,   1097,  603,
+    610,   1322,  -1285, -1465, 384,   -1215, -136,  1218, -1335, -874,  220,
+    -1187, -1659, -1185, -1530, -1278, 794,   -1510, -854, -870,  478,   -108,
+    -308,  996,   991,   958,   -1460, 1522,  1628};
+
+sbit16_t montgomery_reduce(sbit32_t a);
+sbit16_t fqmul(sbit16_t a, sbit16_t b) {
+  return montgomery_reduce( (sbit32_t) a * b );
+}
+sbit16_t barrett_reduce(sbit16_t a);
+void ntt(sbit16_t r[256]);
+void invntt(sbit16_t r[256]);
+
+/*************************************************
+* Name:        ntt_gold
+*
+* Description: Inplace number-theoretic transform (NTT) in Rq.
+*              input is in standard order, output is in bitreversed order
+*
+* Arguments:   - sbit16_t r[256]: pointer to input/output vector of elements of Zq
+**************************************************/
+void ntt_gold(sbit16_t r[256]) {
+  unsigned int len, start, j, k;
+  sbit16_t t, zeta;
+
+  k = 1;
+  for(len = 128; len >= 2; len >>= 1) {
+    for(start = 0; start < 256; start = j + len) {
+      zeta = zetas[k++];
+      for(j = start; j < start + len; j++) {
+        t = fqmul(zeta, r[j + len]);
+        r[j + len] = r[j] - t;
+        r[j] = r[j] + t;
+      }
+    }
+  }
+}
+
+/*************************************************
+* Name:        invntt_gold
+*
+* Description: Inplace inverse number-theoretic transform in Rq and
+*              multiplication by Montgomery factor 2^16.
+*              Input is in bitreversed order, output is in standard order
+*
+* Arguments:   - sbit16_t r[256]: pointer to input/output vector of elements of Zq
+**************************************************/
+void invntt_gold(sbit16_t r[256]) {
+  unsigned int start, len, j, k;
+  sbit16_t t, zeta;
+  const sbit16_t f = 1441; // mont^2/128
+
+  k = 127;
+  for(len = 2; len <= 128; len <<= 1) {
+    for(start = 0; start < 256; start = j + len) {
+      zeta = zetas[k--];
+      for(j = start; j < start + len; j++) {
+        t = r[j];
+        r[j] = barrett_reduce(t + r[j + len]);
+        r[j + len] = r[j + len] - t;
+        r[j + len] = fqmul(zeta, r[j + len]);
+      }
+    }
   }
 
-  bit8_t key_a[CRYPTO_BYTES];
-  bit8_t key_b[CRYPTO_BYTES];
+  for(j = 0; j < 256; j++)
+    r[j] = fqmul(r[j], f);
+}
 
-  //Alice generates a public key
-  crypto_kem_keypair(pk, sk);
-  PRINT_UINT_ARR("pk", pk, CRYPTO_PUBLICKEYBYTES);
-  PRINT_UINT_ARR("sk", sk, CRYPTO_SECRETKEYBYTES);
+static int test_ntt(void)
+{
+  bit8_t bytes[512];
+  randombytes<sizeof(bytes)>(bytes);
 
-  //Bob derives a secret key and creates a response
-  crypto_kem_enc(ct, key_b, pk);
+  sbit16_t r_gold[256];
+  for (int i = 0; i < 256; i++) {
+    r_gold[i](7, 0) = bytes[2*i];
+    r_gold[i](15, 8) = bytes[2*i + 1];
+  }
 
-  PRINT_UINT_ARR("ct", ct, CRYPTO_CIPHERTEXTBYTES);
+  sbit16_t r[256];
+  for (int i = 0; i < 256; i++) {
+    r[i](15, 0) = r_gold[i];
+  }
 
-  //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
+  ntt(r);
+  ntt_gold(r_gold);
 
-  for(int i = 0; i < CRYPTO_BYTES; i++) {
-    if(key_a[i] != key_b[i]) {
-      printf("ERROR keys\n");
-      for (int i = 0; i < CRYPTO_BYTES; i++) {
-        if (key_a[i] == key_b[i]) {
-          printf(ANSI_COLOR_GREEN "%d: %hhx == %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
-        } else {
-          printf(ANSI_COLOR_RED "%d: %hhx != %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
-        }
-      }
+  for (int i = 0; i < 256; i++) {
+    if (r[i] != r_gold[i]) {
+      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, r[i], i, r_gold[i]);
       return 1;
     }
   }
@@ -64,69 +131,37 @@ static int test_keys(void)
   return 0;
 }
 
-static int test_invalid_sk_a(void)
+static int test_invntt(void)
 {
-  bit8_t pk[CRYPTO_PUBLICKEYBYTES];
-  bit8_t sk[CRYPTO_SECRETKEYBYTES];
-  bit8_t ct[CRYPTO_CIPHERTEXTBYTES];
-  bit8_t key_a[CRYPTO_BYTES];
-  bit8_t key_b[CRYPTO_BYTES];
+  bit8_t bytes[512];
+  randombytes<sizeof(bytes)>(bytes);
 
-  //Alice generates a public key
-  crypto_kem_keypair(pk, sk);
+  sbit16_t r_gold[256];
+  for (int i = 0; i < 256; i++) {
+    r_gold[i](7, 0) = bytes[2*i];
+    r_gold[i](15, 8) = bytes[2*i + 1];
+  }
 
-  //Bob derives a secret key and creates a response
-  crypto_kem_enc(ct, key_b, pk);
+  sbit16_t r[256];
+  for (int i = 0; i < 256; i++) {
+    r[i](15, 0) = r_gold[i];
+  }
 
-  //Replace secret key with random values
+  invntt(r);
+  invntt_gold(r_gold);
 
-  randombytes<CRYPTO_SECRETKEYBYTES>(sk);
-
-  //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
-
-  if(!memcmp(key_a, key_b, CRYPTO_BYTES)) {
-    printf("ERROR invalid sk\n");
-    return 1;
+  for (int i = 0; i < 256; i++) {
+    if (r[i] != r_gold[i]) {
+      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, r[i], i, r_gold[i]);
+      return 1;
+    }
   }
 
   return 0;
 }
 
-static int test_invalid_ciphertext(void)
-{
-  bit8_t pk[CRYPTO_PUBLICKEYBYTES];
-  bit8_t sk[CRYPTO_SECRETKEYBYTES];
-  bit8_t ct[CRYPTO_CIPHERTEXTBYTES];
-  bit8_t key_a[CRYPTO_BYTES];
-  bit8_t key_b[CRYPTO_BYTES];
-  bit8_t b;
-  size_t pos;
 
-  do {
-    randombytes<sizeof(bit8_t)>(&b);
-  } while(!b);
-  randombytes<sizeof(size_t)>((bit8_t *)&pos);
 
-  //Alice generates a public key
-  crypto_kem_keypair(pk, sk);
-
-  //Bob derives a secret key and creates a response
-  crypto_kem_enc(ct, key_b, pk);
-
-  //Change some byte in the ciphertext (i.e., encapsulated key)
-  ct[pos % CRYPTO_CIPHERTEXTBYTES] ^= b;
-
-  //Alice uses Bobs response to get her shared key
-  crypto_kem_dec(key_a, ct, sk);
-
-  if(!memcmp(key_a, key_b, CRYPTO_BYTES)) {
-    printf("ERROR invalid ciphertext\n");
-    return 1;
-  }
-
-  return 0;
-}
 
 int main()
 {
@@ -134,16 +169,11 @@ int main()
   int r;
 
   for(i=0;i<NTESTS;i++) {
-    r  = test_keys();
-    r |= test_invalid_sk_a();
-    r |= test_invalid_ciphertext();
+    r  = test_ntt();
+    r |= test_invntt();
     if(r)
       return 1;
   }
-
-  printf("CRYPTO_SECRETKEYBYTES:  %d\n",CRYPTO_SECRETKEYBYTES);
-  printf("CRYPTO_PUBLICKEYBYTES:  %d\n",CRYPTO_PUBLICKEYBYTES);
-  printf("CRYPTO_CIPHERTEXTBYTES: %d\n",CRYPTO_CIPHERTEXTBYTES);
 
   return 0;
 }
