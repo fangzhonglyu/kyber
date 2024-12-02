@@ -12,4 +12,9 @@
 void dut_ntt( hls::stream<bit32_t> &strm_in,
               hls::stream<bit32_t> &strm_out );
 
+void enc(bit8_t *ct, bit8_t *ss, const bit8_t *pk);
+
+void dec(bit8_t *ss, const bit8_t *ct, const bit8_t *sk);
+
+void keypair(bit8_t *pk, bit8_t *sk);
 #endif

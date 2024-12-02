@@ -6,22 +6,7 @@
 # Specify source files
 # ------------------------------------------------------------------------
 
-SOURCES = \
-  kem.cpp \
-  indcpa.cpp \
-  polyvec.cpp \
-  poly.cpp ntt.cpp \
-  cbd.cpp reduce.cpp \
-  verify.cpp \
-  fips202.cpp \
-  symmetric-shake.cpp \
-  randombytes.cpp
-
-TEST_FILES = \
-  test/cpucycles.cpp \
-  test/speed_print.cpp \
-  test/cpucycles.h \
-  test/speed_print.h \
+KYBER_K = 3
 
 HEADERS = \
   params.h \
@@ -31,7 +16,7 @@ HEADERS = \
   poly.h \
   ntt.h \
   cbd.h \
-  reduce.cpp \
+  reduce.h \
   verify.h \
   symmetric.h \
   fips202.h \
@@ -65,37 +50,28 @@ $(BUILD):
 # Object file targets
 # ------------------------------------------------------------------------
 
-OBJECTS := $(addprefix $(BUILD)/,$(subst .cpp,.o,$(notdir $(SOURCES))))
-
-$(OBJECTS): $(BUILD)/%.o: %.cpp $(HEADERS) $(BUILD)
-	$(CC) $(CFLAGS) -DKYBER_K=2 -c $< -o $@
-
 .PHONY: clean
 
 all: speed func
 
 speed: \
-  build/test_speed512 \
+	build/test_speed512 \
 
 func: build/test_kyber
 
-csim: build/test_kyber build/test_speed512
+csim: build/test_kyber
 	./build/test_kyber
-	./build/test_speed512
 
 # shared: \
 #   lib/libpqcrystals_kyber512_hls.so \
 #   lib/libpqcrystals_kyber768_hls.so \
 #   lib/libpqcrystals_kyber1024_hls.so \
 
-build/test_speed512: test/test_speed.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
+build/top.o: top.cpp $(HEADERS) $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=$(KYBER_K) -c $< -o $@
 
-build/test_kyber: test/test_kyber.cpp $(TEST_FILES) $(OBJECTS) $(HEADERS) $(BUILD)
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(OBJECTS) $< -o $@
-
-test/test_kyber512: test/test_kyber.cpp $(TEST_FILES) $(SOURCES) $(HEADERS)
-	$(CC) $(CFLAGS) -DKYBER_K=2 $(TEST_FILES) $(SOURCES) test/test_kyber.cpp -o $@
+build/test_kyber: test/test_kyber.cpp build/top.o $(BUILD)
+	$(CC) $(CFLAGS) -DKYBER_K=$(KYBER_K) $< build/top.o -o $@
 
 # lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)
 # 	mkdir -p lib

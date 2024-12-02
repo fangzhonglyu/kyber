@@ -5,15 +5,6 @@
 #define KYBER_K 3	/* Change this for different security strengths */
 #endif
 
-#ifndef PRINT_UINT_ARR
-#define PRINT_UINT_ARR(name, arr, len) \
-  printf("\n%s: ", (name)); \
-  for (int ii = 0; ii < (len); ii++) { \
-    printf("%2x ", (int)(arr)[ii]); \
-  } \
-  printf("\n");
-#endif
-
 /* Don't change parameters below this line */
 #define KYBER_N 256
 #define KYBER_Q 3329
@@ -49,5 +40,19 @@
 /* 32 bytes of additional space to save H(pk) */
 #define KYBER_SECRETKEYBYTES  (KYBER_INDCPA_SECRETKEYBYTES + KYBER_INDCPA_PUBLICKEYBYTES + 2*KYBER_SYMBYTES)
 #define KYBER_CIPHERTEXTBYTES (KYBER_INDCPA_BYTES)
+
+
+#define CRYPTO_SECRETKEYBYTES KYBER_SECRETKEYBYTES
+#define CRYPTO_PUBLICKEYBYTES KYBER_PUBLICKEYBYTES
+#define CRYPTO_CIPHERTEXTBYTES KYBER_CIPHERTEXTBYTES
+#define CRYPTO_BYTES KYBER_SSBYTES
+
+#if (KYBER_K == 2)
+#define CRYPTO_ALGNAME "Kyber512"
+#elif (KYBER_K == 3)
+#define CRYPTO_ALGNAME "Kyber768"
+#elif (KYBER_K == 4)
+#define CRYPTO_ALGNAME "Kyber1024"
+#endif
 
 #endif
