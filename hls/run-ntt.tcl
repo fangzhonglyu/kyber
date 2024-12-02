@@ -13,26 +13,11 @@ open_project ${hls_prj} -reset
 set_top dut_ntt
 
 # Add source files
-add_files "ntt-fpga.cpp \
-          reduce.cpp" \
+add_files "ntt-fpga.cpp" \
           -cflags "-std=c++11"
 
 # Add testbench files
-add_files -tb "kem.cpp \
-              indcpa.cpp \
-              polyvec.cpp \
-              poly.cpp \
-              cbd.cpp \
-              reduce.cpp \
-              verify.cpp \
-              fips202.cpp \
-              symmetric-shake.cpp \
-              randombytes.cpp \
-              test/cpucycles.cpp \
-              test/speed_print.cpp \
-              test/cpucycles.h \
-              test/speed_print.h \
-              test/test_kyber.cpp" \
+add_files -tb "test/test_ntt.cpp" \
               -cflags "-std=c++11"
 
 open_solution "solution1"
