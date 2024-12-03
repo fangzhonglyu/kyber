@@ -14,7 +14,7 @@
 // Encryption
 //--------------------------------------------------------------------------
 
-void dut_enc( hls::stream<bit32_t> &strm_in,
+void dut( hls::stream<bit32_t> &strm_in,
               hls::stream<bit32_t> &strm_out )
 {
   bit8_t pk[CRYPTO_PUBLICKEYBYTES];

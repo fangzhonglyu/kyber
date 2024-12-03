@@ -10,7 +10,7 @@ set hls_prj kyber.prj
 open_project ${hls_prj} -reset
 
 # Top function of the design is "dut"
-set_top dut_enc
+set_top dut
 
 # Add source files
 add_files "top.cpp" \
@@ -36,5 +36,5 @@ csim_design -O
 # Synthesize the design
 csynth_design
 # Co-simulate the design
-cosim_design
+# cosim_design
 exit

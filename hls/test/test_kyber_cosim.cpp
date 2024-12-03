@@ -62,7 +62,7 @@ static int test_keys(void)
   }
 
   //Bob derives a secret key and creates a response
-  dut_enc(dut_in, dut_out);
+  dut(dut_in, dut_out);
 
   for ( int i = 0; i < CRYPTO_BYTES; i = i + 4 ) {
     bit32_t key_b_word = dut_out.read();
