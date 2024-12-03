@@ -8,12 +8,13 @@
 #include <iostream>
 #include <fstream>
 
+#include "timer.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include "top.h"
 
-#define NTESTS 10
+#define REPS 20
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -58,68 +59,81 @@ int main(int argc, char **argv)
   }
 
 
-  bit8_t pk[CRYPTO_PUBLICKEYBYTES];
-  bit8_t sk[CRYPTO_SECRETKEYBYTES];
-  bit8_t ct[CRYPTO_CIPHERTEXTBYTES];
+  bit8_t pk[REPS][CRYPTO_PUBLICKEYBYTES];
+  bit8_t sk[REPS][CRYPTO_SECRETKEYBYTES];
+  bit8_t ct[REPS][CRYPTO_CIPHERTEXTBYTES];
 
-  gen_randombytes<CRYPTO_CIPHERTEXTBYTES>(ct);
-
-  bit8_t key_a[CRYPTO_BYTES];
-  bit8_t key_b[CRYPTO_BYTES];
+  bit8_t key_a[REPS][CRYPTO_BYTES];
+  bit8_t key_b[REPS][CRYPTO_BYTES];
 
   //Alice generates a public key
-  keypair(pk, sk);
+  for (int i = 0; i < REPS; i++) {
+    keypair(pk[i], sk[i]);
+  }
 
   //Bob derives a secret key and creates a response
+  // Timer
+  Timer timer("kyber on FPGA");
 
-  // Send public key to Bob
-  for (int i = 0; i < CRYPTO_PUBLICKEYBYTES; i = i + 4) {
-    bit32_t pk_word;
-    pk_word(7, 0) = pk[i + 0];
-    pk_word(15, 8) = pk[i + 1];
-    pk_word(23, 16) = pk[i + 2];
-    pk_word(31, 24) = pk[i + 3];
+  std::cout << "Running " << REPS << " reps" << std::endl;
+  
+  timer.start();
+  // Send public keys to Bob
+  for (int rep = 0; rep < REPS; rep++) {
+    for (int i = 0; i < CRYPTO_PUBLICKEYBYTES; i = i + 4) {
+      bit32_t pk_word;
+      pk_word(7, 0) = pk[rep][i + 0];
+      pk_word(15, 8) = pk[rep][i + 1];
+      pk_word(23, 16) = pk[rep][i + 2];
+      pk_word(31, 24) = pk[rep][i + 3];
 
-    int nbytes = write(fdw, (void *)&pk_word, sizeof(pk_word));
-    assert(nbytes == sizeof(pk_word));
+      int nbytes = write(fdw, (void *)&pk_word, sizeof(pk_word));
+      assert(nbytes == sizeof(pk_word));
+    }
   }
-  // Receive shared secret from Bob
-  for (int i = 0; i < CRYPTO_BYTES; i = i + 4) {
-    bit32_t key_b_word;
-    int nbytes = read(fdr, (void *)&key_b_word, sizeof(key_b_word));
-    assert(nbytes == sizeof(key_b_word));
 
-    key_b[i + 0] = key_b_word(7, 0);
-    key_b[i + 1] = key_b_word(15, 8);
-    key_b[i + 2] = key_b_word(23, 16);
-    key_b[i + 3] = key_b_word(31, 24);
-  }
-  // Receive ciphertext from Bob
-  for (int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i = i + 4) {
-    bit32_t ct_word;
-    int nbytes = read(fdr, (void *)&ct_word, sizeof(ct_word));
-    assert(nbytes == sizeof(ct_word));
+  for (int rep = 0; rep < REPS; rep++) {
+    // Receive shared secret from Bob
+    for (int i = 0; i < CRYPTO_BYTES; i = i + 4) {
+      bit32_t key_b_word;
+      int nbytes = read(fdr, (void *)&key_b_word, sizeof(key_b_word));
+      assert(nbytes == sizeof(key_b_word));
 
-    ct[i + 0] = ct_word(7, 0);
-    ct[i + 1] = ct_word(15, 8);
-    ct[i + 2] = ct_word(23, 16);
-    ct[i + 3] = ct_word(31, 24);
+      key_b[rep][i + 0] = key_b_word(7, 0);
+      key_b[rep][i + 1] = key_b_word(15, 8);
+      key_b[rep][i + 2] = key_b_word(23, 16);
+      key_b[rep][i + 3] = key_b_word(31, 24);
+    }
+    // Receive ciphertext from Bob
+    for (int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i = i + 4) {
+      bit32_t ct_word;
+      int nbytes = read(fdr, (void *)&ct_word, sizeof(ct_word));
+      assert(nbytes == sizeof(ct_word));
+
+      ct[rep][i + 0] = ct_word(7, 0);
+      ct[rep][i + 1] = ct_word(15, 8);
+      ct[rep][i + 2] = ct_word(23, 16);
+      ct[rep][i + 3] = ct_word(31, 24);
+    }
   }
+  timer.stop();
 
   //Alice uses Bobs response to get her shared key
-  dec(key_a, ct, sk);
+  for (int rep = 0; rep < REPS; rep++) {
+    dec(key_a[rep], ct[rep], sk[rep]);
 
-  for(int i = 0; i < CRYPTO_BYTES; i++) {
-    if(key_a[i] != key_b[i]) {
-      printf("ERROR keys\n");
-      for (int i = 0; i < CRYPTO_BYTES; i++) {
-        if (key_a[i] == key_b[i]) {
-          printf(ANSI_COLOR_GREEN "%d: %s == %s\n" ANSI_COLOR_RESET, i, key_a[i].to_string(AP_HEX).c_str(), key_b[i].to_string(AP_HEX).c_str());
-        } else {
-          printf(ANSI_COLOR_RED "%d: %s != %s\n" ANSI_COLOR_RESET, i, key_a[i].to_string(AP_HEX).c_str(), key_b[i].to_string(AP_HEX).c_str());
+    for(int i = 0; i < CRYPTO_BYTES; i++) {
+      if(key_a[rep][i] != key_b[rep][i]) {
+        printf("ERROR keys\n");
+        for (int i = 0; i < CRYPTO_BYTES; i++) {
+          if (key_a[rep][i] == key_b[rep][i]) {
+            printf(ANSI_COLOR_GREEN "%d: %s == %s\n" ANSI_COLOR_RESET, i, key_a[rep][i].to_string(AP_HEX).c_str(), key_b[rep][i].to_string(AP_HEX).c_str());
+          } else {
+            printf(ANSI_COLOR_RED "%d: %s != %s\n" ANSI_COLOR_RESET, i, key_a[rep][i].to_string(AP_HEX).c_str(), key_b[rep][i].to_string(AP_HEX).c_str());
+          }
         }
+        return 1;
       }
-      return 1;
     }
   }
 

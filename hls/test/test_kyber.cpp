@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 #include "../top.h"
+#include "../timer.h"
 
+#define REPS 20
 #define NTESTS 10
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -135,6 +137,54 @@ static int test_invalid_ciphertext(void)
   return 0;
 }
 
+int batch_test_keys(void)
+{
+  bit8_t pk[REPS][CRYPTO_PUBLICKEYBYTES];
+  bit8_t sk[REPS][CRYPTO_SECRETKEYBYTES];
+  bit8_t ct[REPS][CRYPTO_CIPHERTEXTBYTES];
+
+  bit8_t key_a[REPS][CRYPTO_BYTES];
+  bit8_t key_b[REPS][CRYPTO_BYTES];
+
+  //Alice generates a public key
+  for (int i = 0; i < REPS; i++) {
+    keypair(pk[i], sk[i]);
+  }
+
+  //Bob derives a secret key and creates a response
+  // Timer
+  Timer timer("kyber on FPGA");
+
+  printf("Running %d reps\n", REPS);
+  
+  timer.start();
+  for (int rep = 0; rep < REPS; rep++) {
+    enc(ct[rep], key_b[rep], pk[rep]);
+  }
+  timer.stop();
+
+  //Alice uses Bobs response to get her shared key
+  for (int rep = 0; rep < REPS; rep++) {
+    dec(key_a[rep], ct[rep], sk[rep]);
+
+    for(int i = 0; i < CRYPTO_BYTES; i++) {
+      if(key_a[rep][i] != key_b[rep][i]) {
+        printf("ERROR keys\n");
+        for (int i = 0; i < CRYPTO_BYTES; i++) {
+          if (key_a[rep][i] == key_b[rep][i]) {
+            printf(ANSI_COLOR_GREEN "%d: %s == %s\n" ANSI_COLOR_RESET, i, key_a[rep][i].to_string(AP_HEX).c_str(), key_b[rep][i].to_string(AP_HEX).c_str());
+          } else {
+            printf(ANSI_COLOR_RED "%d: %s != %s\n" ANSI_COLOR_RESET, i, key_a[rep][i].to_string(AP_HEX).c_str(), key_b[rep][i].to_string(AP_HEX).c_str());
+          }
+        }
+        return 1;
+      }
+    }
+  }
+
+  return 0;
+}
+
 int main()
 {
   unsigned int i;
@@ -151,6 +201,10 @@ int main()
   printf("CRYPTO_SECRETKEYBYTES:  %d\n",CRYPTO_SECRETKEYBYTES);
   printf("CRYPTO_PUBLICKEYBYTES:  %d\n",CRYPTO_PUBLICKEYBYTES);
   printf("CRYPTO_CIPHERTEXTBYTES: %d\n",CRYPTO_CIPHERTEXTBYTES);
+
+  if (batch_test_keys()) {
+    return 1;
+  }
 
   return 0;
 }

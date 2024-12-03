@@ -34,9 +34,9 @@ result/ntt_arm_sim.txt: ntt-arm
 sw: result/kyber_arm_sim.txt result/ntt_arm_sim.txt
 	@echo "Result saved to $@"
 
-kyber-fpga: host-ntt.cpp ntt-fpga.cpp
+kyber-fpga: host.cpp top.cpp
 	@echo "Compiling host program"
-	g++ ${CFLAGS} $^ -o $@
+	g++ ${CFLAGS} $^ -o $@ -std=c++11
 	@echo "Make sure bitstream is loaded!"
 
 ntt-fpga: host-ntt.cpp
