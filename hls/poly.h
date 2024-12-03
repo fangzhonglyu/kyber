@@ -16,9 +16,9 @@
  *
  * Arguments:   - poly *r: pointer to input/output polynomial
  **************************************************/
-void poly_reduce(poly *r) {
+void poly_reduce(sbit16_t r[KYBER_N]) {
   bit32_t i;
-  for (i = 0; i < KYBER_N; i++) r->coeffs[i] = barrett_reduce(r->coeffs[i]);
+  for (i = 0; i < KYBER_N; i++) r[i] = barrett_reduce(r[i]);
 }
 
 
@@ -31,7 +31,7 @@ void poly_reduce(poly *r) {
  *                            (of length KYBER_POLYCOMPRESSEDBYTES)
  *              - const poly *a: pointer to input polynomial
  **************************************************/
-void poly_compress(bit8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a) {
+void poly_compress(bit8_t r[KYBER_POLYCOMPRESSEDBYTES], sbit16_t a[KYBER_N]) {
   int i, j;
   sbit16_t u;
   bit32_t d0;
@@ -42,7 +42,7 @@ void poly_compress(bit8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a) {
   for (i = 0; i < KYBER_N / 8; i++) {
     for (j = 0; j < 8; j++) {
       // map to positive standard representatives
-      u = a->coeffs[8 * i + j];
+      u = a[8 * i + j];
       u += (u >> 15) & KYBER_Q;
       /*    t[j] = ((((usbit16_t)u << 4) + KYBER_Q/2)/KYBER_Q) & 15; */
       d0 = ((bit32_t) u) << 4;
@@ -63,7 +63,7 @@ void poly_compress(bit8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a) {
   for (i = 0; i < KYBER_N / 8; i++) {
     for (j = 0; j < 8; j++) {
       // map to positive standard representatives
-      u = a->coeffs[8 * i + j];
+      u = a[8 * i + j];
       u += (u >> 15) & KYBER_Q;
       /*    t[j] = ((((bit32_t)u << 5) + KYBER_Q/2)/KYBER_Q) & 31; */
       d0 = u << 5;
@@ -95,13 +95,13 @@ void poly_compress(bit8_t r[KYBER_POLYCOMPRESSEDBYTES], const poly *a) {
  *              - const bit8_t *a: pointer to input byte array
  *                                  (of length KYBER_POLYCOMPRESSEDBYTES bytes)
  **************************************************/
-void poly_decompress(poly *r, const bit8_t a[KYBER_POLYCOMPRESSEDBYTES]) {
+void poly_decompress(sbit16_t r[KYBER_N], const bit8_t a[KYBER_POLYCOMPRESSEDBYTES]) {
   bit32_t i;
 
 #if (KYBER_POLYCOMPRESSEDBYTES == 128)
   for (i = 0; i < KYBER_N / 2; i++) {
-    r->coeffs[2 * i + 0] = (((bit16_t)(a[0] & 15) * KYBER_Q) + 8) >> 4;
-    r->coeffs[2 * i + 1] = (((bit16_t)(a[0] >> 4) * KYBER_Q) + 8) >> 4;
+    r[2 * i + 0] = (((bit16_t)(a[0] & 15) * KYBER_Q) + 8) >> 4;
+    r[2 * i + 1] = (((bit16_t)(a[0] >> 4) * KYBER_Q) + 8) >> 4;
     a += 1;
   }
 #elif (KYBER_POLYCOMPRESSEDBYTES == 160)
@@ -119,7 +119,7 @@ void poly_decompress(poly *r, const bit8_t a[KYBER_POLYCOMPRESSEDBYTES]) {
     a += 5;
 
     for (j = 0; j < 8; j++)
-      r->coeffs[8 * i + j] = ((bit32_t)(t[j] & 31) * KYBER_Q + 16) >> 5;
+      r[8 * i + j] = ((bit32_t)(t[j] & 31) * KYBER_Q + 16) >> 5;
   }
 #else
 #error "KYBER_POLYCOMPRESSEDBYTES needs to be in {128, 160}"
@@ -135,15 +135,15 @@ void poly_decompress(poly *r, const bit8_t a[KYBER_POLYCOMPRESSEDBYTES]) {
  *                            (needs space for KYBER_POLYBYTES bytes)
  *              - const poly *a: pointer to input polynomial
  **************************************************/
-void poly_tobytes(bit8_t r[KYBER_POLYBYTES], const poly *a) {
+void poly_tobytes(bit8_t r[KYBER_POLYBYTES], const sbit16_t a[KYBER_N]) {
   bit32_t i;
   bit16_t t0, t1;
 
   for (i = 0; i < KYBER_N / 2; i++) {
     // map to positive standard representatives
-    t0 = a->coeffs[2 * i];
+    t0 = a[2 * i];
     t0 += ((sbit16_t)t0 >> 15) & KYBER_Q;
-    t1 = a->coeffs[2 * i + 1];
+    t1 = a[2 * i + 1];
     t1 += ((sbit16_t)t1 >> 15) & KYBER_Q;
     r[3 * i + 0] = (t0 >> 0);
     r[3 * i + 1] = (t0 >> 8) | (t1 << 4);
@@ -161,12 +161,12 @@ void poly_tobytes(bit8_t r[KYBER_POLYBYTES], const poly *a) {
  *              - const bit8_t *a: pointer to input byte array
  *                                  (of KYBER_POLYBYTES bytes)
  **************************************************/
-void poly_frombytes(poly *r, const bit8_t a[KYBER_POLYBYTES]) {
+void poly_frombytes(sbit16_t r[KYBER_N], const bit8_t a[KYBER_POLYBYTES]) {
   bit32_t i;
   for (i = 0; i < KYBER_N / 2; i++) {
-    r->coeffs[2 * i] =
+    r[2 * i] =
         ((a[3 * i + 0] >> 0) | ((bit16_t)a[3 * i + 1] << 8)) & 0xFFF;
-    r->coeffs[2 * i + 1] =
+    r[2 * i + 1] =
         ((a[3 * i + 1] >> 4) | ((bit16_t)a[3 * i + 2] << 4)) & 0xFFF;
   }
 }
@@ -179,7 +179,7 @@ void poly_frombytes(poly *r, const bit8_t a[KYBER_POLYBYTES]) {
  * Arguments:   - poly *r: pointer to output polynomial
  *              - const bit8_t *msg: pointer to input message
  **************************************************/
-void poly_frommsg(poly *r, const bit8_t msg[KYBER_INDCPA_MSGBYTES]) {
+void poly_frommsg(sbit16_t r[KYBER_N], const bit8_t msg[KYBER_INDCPA_MSGBYTES]) {
   bit32_t i, j;
 
 #if (KYBER_INDCPA_MSGBYTES != KYBER_N / 8)
@@ -188,8 +188,8 @@ void poly_frommsg(poly *r, const bit8_t msg[KYBER_INDCPA_MSGBYTES]) {
 
   for (i = 0; i < KYBER_N / 8; i++) {
     for (j = 0; j < 8; j++) {
-      r->coeffs[8 * i + j] = 0;
-      cmov_int16(r->coeffs + 8 * i + j, ((KYBER_Q + 1) / 2), (msg[i] >> j) & 1);
+      r[8 * i + j] = 0;
+      cmov_int16(r + 8 * i + j, ((KYBER_Q + 1) / 2), (msg[i] >> j) & 1);
     }
   }
 }
@@ -202,14 +202,14 @@ void poly_frommsg(poly *r, const bit8_t msg[KYBER_INDCPA_MSGBYTES]) {
  * Arguments:   - bit8_t *msg: pointer to output message
  *              - const poly *a: pointer to input polynomial
  **************************************************/
-void poly_tomsg(bit8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a) {
+void poly_tomsg(bit8_t msg[KYBER_INDCPA_MSGBYTES], const sbit16_t a[KYBER_N]) {
   bit32_t i, j;
   bit32_t t;
 
   for (i = 0; i < KYBER_N / 8; i++) {
     msg[i] = 0;
     for (j = 0; j < 8; j++) {
-      t = a->coeffs[8 * i + j];
+      t = a[8 * i + j];
       // t += ((sbit16_t)t >> 15) & KYBER_Q;
       // t  = (((t << 1) + KYBER_Q/2)/KYBER_Q) & 1;
       t <<= 1;
@@ -234,7 +234,7 @@ void poly_tomsg(bit8_t msg[KYBER_INDCPA_MSGBYTES], const poly *a) {
  *                                     (of length KYBER_SYMBYTES bytes)
  *              - bit8_t nonce: one-byte input nonce
  **************************************************/
-void poly_getnoise_eta1(poly *r, const bit8_t seed[KYBER_SYMBYTES],
+void poly_getnoise_eta1(sbit16_t r[KYBER_N], const bit8_t seed[KYBER_SYMBYTES],
                         bit8_t nonce) {
   bit8_t buf[KYBER_ETA1 * KYBER_N / 4];
   kyber_shake256_prf<KYBER_ETA1 * KYBER_N / 4>(buf, seed, nonce);
@@ -253,7 +253,7 @@ void poly_getnoise_eta1(poly *r, const bit8_t seed[KYBER_SYMBYTES],
  *                                     (of length KYBER_SYMBYTES bytes)
  *              - bit8_t nonce: one-byte input nonce
  **************************************************/
-void poly_getnoise_eta2(poly *r, const bit8_t seed[KYBER_SYMBYTES],
+void poly_getnoise_eta2(sbit16_t r[KYBER_N], const bit8_t seed[KYBER_SYMBYTES],
                         bit8_t nonce) {
   bit8_t buf[KYBER_ETA2 * KYBER_N / 4];
   kyber_shake256_prf<KYBER_ETA2 * KYBER_N / 4>(buf, seed, nonce);
@@ -270,8 +270,8 @@ void poly_getnoise_eta2(poly *r, const bit8_t seed[KYBER_SYMBYTES],
  *
  * Arguments:   - usbit16_t *r: pointer to in/output polynomial
  **************************************************/
-void poly_ntt(poly *r) {
-  ntt(r->coeffs);
+void poly_ntt(sbit16_t r[KYBER_N]) {
+  ntt(r);
   poly_reduce(r);
 }
 
@@ -285,7 +285,7 @@ void poly_ntt(poly *r) {
  *
  * Arguments:   - usbit16_t *a: pointer to in/output polynomial
  **************************************************/
-void poly_invntt_tomont(poly *r) { invntt(r->coeffs); }
+void poly_invntt_tomont(sbit16_t r[KYBER_N]) { invntt(r); }
 
 /*************************************************
  * Name:        poly_basemul_montgomery
@@ -296,12 +296,12 @@ void poly_invntt_tomont(poly *r) { invntt(r->coeffs); }
  *              - const poly *a: pointer to first input polynomial
  *              - const poly *b: pointer to second input polynomial
  **************************************************/
-void poly_basemul_montgomery(poly *r, const poly *a, const poly *b) {
+void poly_basemul_montgomery(sbit16_t r[KYBER_N], sbit16_t a[KYBER_N], sbit16_t b[KYBER_N]) {
   bit32_t i;
   for (i = 0; i < KYBER_N / 4; i++) {
-    basemul(&r->coeffs[4 * i], &a->coeffs[4 * i], &b->coeffs[4 * i],
+    basemul(&r[4 * i], &a[4 * i], &b[4 * i],
             zetas[64 + i]);
-    basemul(&r->coeffs[4 * i + 2], &a->coeffs[4 * i + 2], &b->coeffs[4 * i + 2],
+    basemul(&r[4 * i + 2], &a[4 * i + 2], &b[4 * i + 2],
             -zetas[64 + i]);
   }
 }
@@ -314,11 +314,11 @@ void poly_basemul_montgomery(poly *r, const poly *a, const poly *b) {
  *
  * Arguments:   - poly *r: pointer to input/output polynomial
  **************************************************/
-void poly_tomont(poly *r) {
+void poly_tomont(sbit16_t r[KYBER_N]) {
   bit32_t i;
   const sbit16_t f = (1ULL << 32) % KYBER_Q;
   for (i = 0; i < KYBER_N; i++)
-    r->coeffs[i] = montgomery_reduce((sbit32_t)r->coeffs[i] * f);
+    r[i] = montgomery_reduce((sbit32_t)r[i] * f);
 }
 
 /*************************************************
@@ -330,9 +330,9 @@ void poly_tomont(poly *r) {
  *            - const poly *a: pointer to first input polynomial
  *            - const poly *b: pointer to second input polynomial
  **************************************************/
-void poly_add(poly *r, const poly *a, const poly *b) {
+void poly_add(sbit16_t r[KYBER_N], const sbit16_t a[KYBER_N], const sbit16_t b[KYBER_N]) {
   bit32_t i;
-  for (i = 0; i < KYBER_N; i++) r->coeffs[i] = a->coeffs[i] + b->coeffs[i];
+  for (i = 0; i < KYBER_N; i++) r[i] = a[i] + b[i];
 }
 
 /*************************************************
@@ -344,9 +344,9 @@ void poly_add(poly *r, const poly *a, const poly *b) {
  *            - const poly *a: pointer to first input polynomial
  *            - const poly *b: pointer to second input polynomial
  **************************************************/
-void poly_sub(poly *r, const poly *a, const poly *b) {
+void poly_sub(sbit16_t r[KYBER_N], const sbit16_t a[KYBER_N], const sbit16_t b[KYBER_N]) {
   bit32_t i;
-  for (i = 0; i < KYBER_N; i++) r->coeffs[i] = a->coeffs[i] - b->coeffs[i];
+  for (i = 0; i < KYBER_N; i++) r[i] = a[i] - b[i];
 }
 
 #endif

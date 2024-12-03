@@ -5,10 +5,6 @@
 #include "poly.h"
 #include "typedefs.h"
 
-typedef struct {
-  poly vec[KYBER_K];
-} polyvec;
-
 /*************************************************
  * Name:        polyvec_compress
  *
@@ -19,7 +15,7 @@ typedef struct {
  *              - const polyvec *a: pointer to input vector of polynomials
  **************************************************/
 void polyvec_compress(bit8_t r[KYBER_POLYVECCOMPRESSEDBYTES],
-                      const polyvec *a) {
+                      sbit16_t a[KYBER_K][KYBER_N]) {
   bit32_t i, j, k;
   bit64_t d0;
 
@@ -28,7 +24,7 @@ void polyvec_compress(bit8_t r[KYBER_POLYVECCOMPRESSEDBYTES],
   for (i = 0; i < KYBER_K; i++) {
     for (j = 0; j < KYBER_N / 8; j++) {
       for (k = 0; k < 8; k++) {
-        t[k] = a->vec[i].coeffs[8 * j + k];
+        t[k] = a[i][8 * j + k];
         t[k] += ((sbit16_t)t[k] >> 15) & KYBER_Q;
         /*      t[k]  = ((((uint32_t)t[k] << 11) + KYBER_Q/2)/KYBER_Q) & 0x7ff;
          */
@@ -59,7 +55,7 @@ void polyvec_compress(bit8_t r[KYBER_POLYVECCOMPRESSEDBYTES],
   for (i = 0; i < KYBER_K; i++) {
     for (j = 0; j < KYBER_N / 4; j++) {
       for (k = 0; k < 4; k++) {
-        t[k] = a->vec[i].coeffs[4 * j + k];
+        t[k] = a[i][4 * j + k];
         t[k] += ((sbit16_t)t[k] >> 15) & KYBER_Q;
         /*      t[k]  = ((((uint32_t)t[k] << 10) + KYBER_Q/2)/ KYBER_Q) & 0x3ff;
          */
@@ -103,7 +99,7 @@ void polyvec_compress(bit8_t r[KYBER_POLYVECCOMPRESSEDBYTES],
  *              - const bit8_t *a: pointer to input byte array
  *                                  (of length KYBER_POLYVECCOMPRESSEDBYTES)
  **************************************************/
-void polyvec_decompress(polyvec *r,
+void polyvec_decompress(sbit16_t r[KYBER_K][KYBER_N],
                         const bit8_t a[KYBER_POLYVECCOMPRESSEDBYTES]) {
   sbit32_t i, j, k;
 
@@ -122,7 +118,7 @@ void polyvec_decompress(polyvec *r,
       a += 11;
 
       for (k = 0; k < 8; k++)
-        r->vec[i].coeffs[8 * j + k] =
+        r[i][8 * j + k] =
             ((bit32_t)(t[k] & 0x7FF) * KYBER_Q + 1024) >> 11;
     }
   }
@@ -137,7 +133,7 @@ void polyvec_decompress(polyvec *r,
       a += 5;
 
       for (k = 0; k < 4; k++)
-        r->vec[i].coeffs[4 * j + k] =
+        r[i][4 * j + k] =
             ((bit32_t)(t[k] & 0x3FF) * KYBER_Q + 512) >> 10;
     }
   }
@@ -155,9 +151,9 @@ void polyvec_decompress(polyvec *r,
  *                            (needs space for KYBER_POLYVECBYTES)
  *              - const polyvec *a: pointer to input vector of polynomials
  **************************************************/
-void polyvec_tobytes(bit8_t r[KYBER_POLYVECBYTES], const polyvec *a) {
+void polyvec_tobytes(bit8_t r[KYBER_POLYVECBYTES], sbit16_t a[KYBER_K][KYBER_N]) {
   for (int i = 0; i < KYBER_K; i++)
-    poly_tobytes(r + i * KYBER_POLYBYTES, &a->vec[i]);
+    poly_tobytes(r + i * KYBER_POLYBYTES, a[i]);
 }
 
 /*************************************************
@@ -170,9 +166,9 @@ void polyvec_tobytes(bit8_t r[KYBER_POLYVECBYTES], const polyvec *a) {
  *              - const polyvec *a: pointer to input vector of polynomials
  *                                  (of length KYBER_POLYVECBYTES)
  **************************************************/
-void polyvec_frombytes(polyvec *r, const bit8_t a[KYBER_POLYVECBYTES]) {
+void polyvec_frombytes(sbit16_t r[KYBER_K][KYBER_N], const bit8_t a[KYBER_POLYVECBYTES]) {
   for (int i = 0; i < KYBER_K; i++)
-    poly_frombytes(&r->vec[i], a + i * KYBER_POLYBYTES);
+    poly_frombytes(r[i], a + i * KYBER_POLYBYTES);
 }
 
 /*************************************************
@@ -182,8 +178,8 @@ void polyvec_frombytes(polyvec *r, const bit8_t a[KYBER_POLYVECBYTES]) {
  *
  * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
  **************************************************/
-void polyvec_ntt(polyvec *r) {
-  for (int i = 0; i < KYBER_K; i++) poly_ntt(&r->vec[i]);
+void polyvec_ntt(sbit16_t r[KYBER_K][KYBER_N]) {
+  for (int i = 0; i < KYBER_K; i++) poly_ntt(r[i]);
 }
 
 /*************************************************
@@ -194,8 +190,8 @@ void polyvec_ntt(polyvec *r) {
  *
  * Arguments:   - polyvec *r: pointer to in/output vector of polynomials
  **************************************************/
-void polyvec_invntt_tomont(polyvec *r) {
-  for (int i = 0; i < KYBER_K; i++) poly_invntt_tomont(&r->vec[i]);
+void polyvec_invntt_tomont(sbit16_t r[KYBER_K][KYBER_N]) {
+  for (int i = 0; i < KYBER_K; i++) poly_invntt_tomont(r[i]);
 }
 
 /*************************************************
@@ -208,14 +204,14 @@ void polyvec_invntt_tomont(polyvec *r) {
  *            - const polyvec *a: pointer to first input vector of polynomials
  *            - const polyvec *b: pointer to second input vector of polynomials
  **************************************************/
-void polyvec_basemul_acc_montgomery(poly *r, const polyvec *a,
-                                    const polyvec *b) {
-  poly t;
+void polyvec_basemul_acc_montgomery(sbit16_t r[KYBER_N], sbit16_t a[KYBER_K][KYBER_N],
+                                    sbit16_t b[KYBER_K][KYBER_N]) {
+  sbit16_t t[KYBER_N];
 
-  poly_basemul_montgomery(r, &a->vec[0], &b->vec[0]);
+  poly_basemul_montgomery(r, a[0], b[0]);
   for (int i = 1; i < KYBER_K; i++) {
-    poly_basemul_montgomery(&t, &a->vec[i], &b->vec[i]);
-    poly_add(r, r, &t);
+    poly_basemul_montgomery(t, a[i], b[i]);
+    poly_add(r, r, t);
   }
 
   poly_reduce(r);
@@ -230,8 +226,8 @@ void polyvec_basemul_acc_montgomery(poly *r, const polyvec *a,
  *
  * Arguments:   - polyvec *r: pointer to input/output polynomial
  **************************************************/
-void polyvec_reduce(polyvec *r) {
-  for (int i = 0; i < KYBER_K; i++) poly_reduce(&r->vec[i]);
+void polyvec_reduce(sbit16_t r[KYBER_K][KYBER_N]) {
+  for (int i = 0; i < KYBER_K; i++) poly_reduce(r[i]);
 }
 
 /*************************************************
@@ -243,9 +239,9 @@ void polyvec_reduce(polyvec *r) {
  *            - const polyvec *a: pointer to first input vector of polynomials
  *            - const polyvec *b: pointer to second input vector of polynomials
  **************************************************/
-void polyvec_add(polyvec *r, const polyvec *a, const polyvec *b) {
+void polyvec_add(sbit16_t r[KYBER_K][KYBER_N], const sbit16_t a[KYBER_K][KYBER_N], const sbit16_t b[KYBER_K][KYBER_N]) {
   for (int i = 0; i < KYBER_K; i++)
-    poly_add(&r->vec[i], &a->vec[i], &b->vec[i]);
+    poly_add(r[i], a[i], b[i]);
 }
 
 #endif

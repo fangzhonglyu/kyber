@@ -51,10 +51,10 @@ static bit32_t load24_littleendian(const bit8_t x[3]) {
  *              polynomial with coefficients distributed according to
  *              a centered binomial distribution with parameter eta=2
  *
- * Arguments:   - poly *r: pointer to output polynomial
- *              - const bit8_t *buf: pointer to input byte array
+ * Arguments:   - sbit16_t r[KYBER_N]: output polynomial
+ *              - const bit8_t buf: input byte array
  **************************************************/
-static void cbd2(poly *r, const bit8_t buf[2 * KYBER_N / 4]) {
+static void cbd2(sbit16_t r[KYBER_N], const bit8_t buf[2 * KYBER_N / 4]) {
   unsigned int i, j;
   bit32_t t, d;
   sbit16_t a, b;
@@ -67,7 +67,7 @@ static void cbd2(poly *r, const bit8_t buf[2 * KYBER_N / 4]) {
     for (j = 0; j < 8; j++) {
       a = (d >> (4 * j + 0)) & 0x3;
       b = (d >> (4 * j + 2)) & 0x3;
-      r->coeffs[8 * i + j] = a - b;
+      r[8 * i + j] = a - b;
     }
   }
 }
@@ -84,7 +84,7 @@ static void cbd2(poly *r, const bit8_t buf[2 * KYBER_N / 4]) {
  *              - const bit8_t *buf: pointer to input byte array
  **************************************************/
 #if KYBER_ETA1 == 3
-static void cbd3(poly *r, const bit8_t buf[3 * KYBER_N / 4]) {
+static void cbd3(sbit16_t r[KYBER_N], const bit8_t buf[3 * KYBER_N / 4]) {
   unsigned int i, j;
   bit32_t t, d;
   sbit16_t a, b;
@@ -98,13 +98,13 @@ static void cbd3(poly *r, const bit8_t buf[3 * KYBER_N / 4]) {
     for (j = 0; j < 4; j++) {
       a = (d >> (6 * j + 0)) & 0x7;
       b = (d >> (6 * j + 3)) & 0x7;
-      r->coeffs[4 * i + j] = a - b;
+      r[4 * i + j] = a - b;
     }
   }
 }
 #endif
 
-void poly_cbd_eta1(poly *r, const bit8_t buf[KYBER_ETA1 * KYBER_N / 4]) {
+void poly_cbd_eta1(sbit16_t r[KYBER_N], const bit8_t buf[KYBER_ETA1 * KYBER_N / 4]) {
 #if KYBER_ETA1 == 2
   cbd2(r, buf);
 #elif KYBER_ETA1 == 3
@@ -114,7 +114,7 @@ void poly_cbd_eta1(poly *r, const bit8_t buf[KYBER_ETA1 * KYBER_N / 4]) {
 #endif
 }
 
-void poly_cbd_eta2(poly *r, const bit8_t buf[KYBER_ETA2 * KYBER_N / 4]) {
+void poly_cbd_eta2(sbit16_t r[KYBER_N], const bit8_t buf[KYBER_ETA2 * KYBER_N / 4]) {
 #if KYBER_ETA2 == 2
   cbd2(r, buf);
 #else
