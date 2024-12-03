@@ -40,9 +40,7 @@ static int test_keys(void)
   bit8_t sk[CRYPTO_SECRETKEYBYTES];
   bit8_t ct[CRYPTO_CIPHERTEXTBYTES];
 
-  for(int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i++) {
-    ct[i] = 0;
-  }
+  gen_randombytes<CRYPTO_CIPHERTEXTBYTES>(ct);
 
   bit8_t key_a[CRYPTO_BYTES];
   bit8_t key_b[CRYPTO_BYTES];
@@ -61,9 +59,9 @@ static int test_keys(void)
       printf("ERROR keys\n");
       for (int i = 0; i < CRYPTO_BYTES; i++) {
         if (key_a[i] == key_b[i]) {
-          printf(ANSI_COLOR_GREEN "%d: %hhx == %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
+          printf(ANSI_COLOR_GREEN "%d: %s == %s\n" ANSI_COLOR_RESET, i, key_a[i].to_string(AP_HEX).c_str(), key_b[i].to_string(AP_HEX).c_str());
         } else {
-          printf(ANSI_COLOR_RED "%d: %hhx != %hhx\n" ANSI_COLOR_RESET, i, key_a[i], key_b[i]);
+          printf(ANSI_COLOR_RED "%d: %s != %s\n" ANSI_COLOR_RESET, i, key_a[i].to_string(AP_HEX).c_str(), key_b[i].to_string(AP_HEX).c_str());
         }
       }
       return 1;

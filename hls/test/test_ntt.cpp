@@ -160,9 +160,6 @@ static int test_invntt(void)
   return 0;
 }
 
-
-
-
 int main()
 {
   unsigned int i;
