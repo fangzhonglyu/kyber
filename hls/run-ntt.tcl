@@ -10,7 +10,7 @@ set hls_prj ntt.prj
 open_project ${hls_prj} -reset
 
 # Top function of the design is "dut"
-set_top dut_ntt
+set_top dut
 
 # Add source files
 add_files "ntt-fpga.cpp" \

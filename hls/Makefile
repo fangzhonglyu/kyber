@@ -103,3 +103,9 @@ synth-ntt:
 
 synth-ntt-opt:
 	$(XIL_HLS) -f run-ntt-opt.tcl
+
+bitstream: synth
+	source $(XILINX_VIVADO)/settings64.sh; ./run_bitstream.sh kyber.prj
+
+bitstream-ntt: synth-ntt
+	source $(XILINX_VIVADO)/settings64.sh; ./run_bitstream.sh ntt.prj

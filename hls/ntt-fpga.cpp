@@ -202,8 +202,7 @@ void invntt_fpga( sbit16_t r[256] )
 // -----------------------------------------------------------------------
 // Takes in data from the FPGA stream, and calls ntt/invntt as appropriate
 
-void dut_ntt( hls::stream<bit32_t> &strm_in,
-              hls::stream<bit32_t> &strm_out )
+void dut( hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out )
 {
   sbit16_t poly[256];
   bit32_t  sel_word = strm_in.read();
@@ -260,7 +259,7 @@ void ntt( sbit16_t poly[256] )
   }
 
   // Call function
-  dut_ntt( ntt_in, ntt_out );
+  dut( ntt_in, ntt_out );
 
   // Read output
   for ( int i = 0; i < 256; i = i + 2 ) {
@@ -290,7 +289,7 @@ void invntt( sbit16_t poly[256] )
   }
 
   // Call function
-  dut_ntt( invntt_in, invntt_out );
+  dut( invntt_in, invntt_out );
 
   // Read output
   for ( int i = 0; i < 256; i = i + 2 ) {
