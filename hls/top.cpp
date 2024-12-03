@@ -36,7 +36,7 @@ void dut_enc( hls::stream<bit32_t> &strm_in,
   crypto_kem_enc( ct, key_b, pk );
 
   // Write resulting shared secret
-  for ( int i = 0; i < CRYPTO_PUBLICKEYBYTES; i = i + 4 ) {
+  for ( int i = 0; i < CRYPTO_BYTES; i = i + 4 ) {
     bit32_t key_b_word;
     key_b_word( 7, 0 )   = key_b[i + 0];
     key_b_word( 15, 8 )  = key_b[i + 1];

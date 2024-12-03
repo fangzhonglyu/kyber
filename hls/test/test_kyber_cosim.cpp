@@ -21,7 +21,6 @@
   printf("\n");
 #endif
 
-
 bit8_t lfsr_random(bit8_t seed);
 
 template <int L>
@@ -32,7 +31,6 @@ void gen_randombytes(bit8_t out[L]) {
     seed = out[i];
   }
 }
-
 
 static int test_keys(void)
 {
@@ -50,8 +48,37 @@ static int test_keys(void)
   //Alice generates a public key
   keypair(pk, sk);
 
+  hls::stream<bit32_t> dut_in;
+  hls::stream<bit32_t> dut_out;
+
+  // Read public key
+  for ( int i = 0; i < CRYPTO_PUBLICKEYBYTES; i = i + 4 ) {
+    bit32_t pk_word;
+    pk_word( 7, 0 ) = pk[i + 0];
+    pk_word( 15, 8 ) = pk[i + 1];
+    pk_word( 23, 16 ) = pk[i + 2];
+    pk_word( 31, 24 ) = pk[i + 3 ];
+    dut_in.write(pk_word);
+  }
+
   //Bob derives a secret key and creates a response
-  enc(ct, key_b, pk);
+  dut_enc(dut_in, dut_out);
+
+  for ( int i = 0; i < CRYPTO_BYTES; i = i + 4 ) {
+    bit32_t key_b_word = dut_out.read();
+    key_b[i + 0] = key_b_word( 7, 0 );
+    key_b[i + 1] = key_b_word( 15, 8 );
+    key_b[i + 2] = key_b_word( 23, 16 );
+    key_b[i + 3] = key_b_word( 31, 24 );
+  }
+
+  for(int i = 0; i < CRYPTO_CIPHERTEXTBYTES; i = i + 4) {
+    bit32_t ct_word = dut_out.read();
+    ct[i + 0] = ct_word( 7, 0 );
+    ct[i + 1] = ct_word( 15, 8 );
+    ct[i + 2] = ct_word( 23, 16 );
+    ct[i + 3] = ct_word( 31, 24 );
+  }
 
   //Alice uses Bobs response to get her shared key
   dec(key_a, ct, sk);
@@ -84,7 +111,6 @@ static int test_invalid_sk_a(void)
   //Alice generates a public key
   keypair(pk, sk);
 
-  //Bob derives a secret key and creates a response
   enc(ct, key_b, pk);
 
   //Replace secret key with random values

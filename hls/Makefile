@@ -70,7 +70,7 @@ csim: build/test_kyber
 build/top.o: top.cpp $(HEADERS) $(BUILD)
 	$(CC) $(CFLAGS) -DKYBER_K=$(KYBER_K) -c $< -o $@
 
-build/test_kyber: test/test_kyber.cpp build/top.o $(BUILD)
+build/test_kyber: test/test_kyber_cosim.cpp build/top.o $(BUILD)
 	$(CC) $(CFLAGS) -DKYBER_K=$(KYBER_K) $< build/top.o -o $@
 
 # lib/libpqcrystals_kyber512_hls.so: $(SOURCES) $(HEADERS)

@@ -17,7 +17,7 @@ add_files "top.cpp" \
           -cflags "-std=c++11"
 
 # Add testbench files
-add_files -tb "test/test_kyber.cpp" \
+add_files -tb "test/test_kyber_cosim.cpp" \
               -cflags "-std=c++11"
 
 open_solution "solution1"
@@ -36,5 +36,5 @@ csim_design -O
 # Synthesize the design
 csynth_design
 # Co-simulate the design
-#cosim_design
+cosim_design
 exit
