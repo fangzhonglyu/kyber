@@ -122,26 +122,36 @@ static void unpack_ciphertext(polyvec *b, poly *v,
  * Returns number of sampled 16-bit integers (at most len)
  **************************************************/
 template<int BUF_LEN>
-static bit32_t rej_uniform(sbit16_t *r, bit32_t len, const bit8_t *buf) {
-  bit32_t ctr, pos;
-  bit16_t val0, val1;
+static ap_uint<32> rej_uniform(ap_int<16> *r, ap_uint<32> len, const ap_uint<8> buf[BUF_LEN]) {
+    ap_uint<32> ctr = 0;
+    ap_uint<32> pos = 0;
 
-  ctr = pos = 0;
 REJ_SAMPLE:
-  while (ctr < len && pos + 3 <= BUF_LEN) {
-    val0 = ((buf[pos + 0] >> 0) | ((bit16_t)buf[pos + 1] << 8)) & 0xFFF;
-    val1 = ((buf[pos + 1] >> 4) | ((bit16_t)buf[pos + 2] << 4)) & 0xFFF;
-    pos += 3;
+    for (ap_uint<32> i = 0; i < BUF_LEN / 3 && ctr < len; i++) {
+        if (pos + 3 > BUF_LEN) break;
 
-    if (val0 < KYBER_Q) r[ctr++] = val0;
-    if (ctr < len && val1 < KYBER_Q) r[ctr++] = val1;
-  }
+        ap_int<16> val0 = ((buf[pos + 0] >> 0) | ((ap_int<16>)buf[pos + 1] << 8)) & 0xFFF;
+        ap_int<16> val1 = ((buf[pos + 1] >> 4) | ((ap_int<16>)buf[pos + 2] << 4)) & 0xFFF;
+        pos += 3;
 
-  return ctr;
+        if (val0 < KYBER_Q) {
+            r[ctr] = val0;
+            ctr++;
+        }
+        if (ctr < len && val1 < KYBER_Q) {
+            r[ctr] = val1;
+            ctr++;
+        }
+    }
+
+    return ctr;
 }
-
+#ifndef GEN_MATRIX_MACROS
+#define GEN_MATRIX_MACROS
 #define gen_a(A, B) gen_matrix(A, B, 0)
 #define gen_at(A, B) gen_matrix(A, B, 1)
+#endif
+
 
 /*************************************************
  * Name:        gen_matrix
@@ -160,11 +170,12 @@ REJ_SAMPLE:
     "Implementation of gen_matrix assumes that XOF_BLOCKBYTES is a multiple of 3"
 #endif
 
-#define GEN_MATRIX_NBLOCKS \
-  ((12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / XOF_BLOCKBYTES)
-// Not static for benchmarking
+#define GEN_MATRIX_NBLOCKS ((12 * KYBER_N / 8 * (1 << 12) / KYBER_Q + XOF_BLOCKBYTES) / XOF_BLOCKBYTES)
+
+#define MAX_UNIFORM_REJECTIONS (KYBER_N + XOF_BLOCKBYTES - 1) / XOF_BLOCKBYTES
+
 void gen_matrix(polyvec *a, const bit8_t seed[KYBER_SYMBYTES], bit transposed) {
-  bit32_t ctr, i, j;
+  bit32_t ctr, i, j, k;
   bit8_t buf[GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES];
   xof_state state;
 
@@ -172,22 +183,28 @@ GEN_ROW:
   for (i = 0; i < KYBER_K; i++) {
 GEN_COL:
     for (j = 0; j < KYBER_K; j++) {
-      if (transposed)
-        xof_absorb(&state, seed, i, j);
-      else
-        xof_absorb(&state, seed, j, i);
+      bit8_t row_transposed = i;
+      bit8_t col_transposed = j;
+      bit8_t row_normal = j;
+      bit8_t col_normal = i;
+      bit8_t row = transposed ? row_transposed : row_normal;
+      bit8_t col = transposed ? col_transposed : col_normal;
 
+      xof_absorb(&state, seed, row, col);
       shake128_squeezeblocks<GEN_MATRIX_NBLOCKS>(buf, &state);
       ctr = rej_uniform<GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES>(a[i].vec[j].coeffs, KYBER_N, buf);
 
-      while (ctr < KYBER_N) {
+FIXED_REJECTIONS:
+      for (k = 0; k < MAX_UNIFORM_REJECTIONS; k++) {
+        bit32_t mask = (ctr < KYBER_N) ? 1 : 0; 
         shake128_squeezeblocks<1>(buf, &state);
-        ctr +=
-            rej_uniform<XOF_BLOCKBYTES>(a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf);
+        ctr += mask * rej_uniform<XOF_BLOCKBYTES>(
+            a[i].vec[j].coeffs + ctr, KYBER_N - ctr, buf);
       }
     }
   }
 }
+
 
 /*************************************************
  * Name:        indcpa_keypair_derand
