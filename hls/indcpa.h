@@ -122,16 +122,21 @@ static void unpack_ciphertext(sbit16_t b[KYBER_K][KYBER_N], sbit16_t v[KYBER_N],
  * Returns number of sampled 16-bit integers (at most len)
  **************************************************/
 template<int BUF_LEN>
-static ap_uint<32> rej_uniform(ap_int<16> *r, ap_uint<32> len, const ap_uint<8> buf[BUF_LEN]) {
-    ap_uint<32> ctr = 0;
-    ap_uint<32> pos = 0;
+static bit32_t rej_uniform(sbit16_t *r, bit32_t len, const bit8_t buf[BUF_LEN]) {
+    bit32_t ctr = 0;
+    bit32_t pos = 0;
 
 REJ_SAMPLE:
-    for (ap_uint<32> i = 0; i < BUF_LEN / 3 && ctr < len; i++) {
-        if (pos + 3 > BUF_LEN) break;
+    for (bit32_t i = 0; i < BUF_LEN / 3; i++) {
+        #pragma HLS pipeline II=3
+        if (ctr >= len) break;
+        bit8_t buf0 = buf[pos + 0];
+        bit8_t buf1 = buf[pos + 1];
+        bit8_t buf2 = buf[pos + 2];
 
-        ap_int<16> val0 = ((buf[pos + 0] >> 0) | ((ap_int<16>)buf[pos + 1] << 8)) & 0xFFF;
-        ap_int<16> val1 = ((buf[pos + 1] >> 4) | ((ap_int<16>)buf[pos + 2] << 4)) & 0xFFF;
+        sbit16_t val0 = ((buf0 >> 0) | ((sbit16_t)buf1 << 8)) & 0xFFF;
+        sbit16_t val1 = ((buf1 >> 4) | ((sbit16_t)buf2 << 4)) & 0xFFF;
+
         pos += 3;
 
         if (val0 < KYBER_Q) {
@@ -183,23 +188,18 @@ GEN_ROW:
   for (i = 0; i < KYBER_K; i++) {
 GEN_COL:
     for (j = 0; j < KYBER_K; j++) {
-      bit8_t row_transposed = i;
-      bit8_t col_transposed = j;
-      bit8_t row_normal = j;
-      bit8_t col_normal = i;
-      bit8_t row = transposed ? row_transposed : row_normal;
-      bit8_t col = transposed ? col_transposed : col_normal;
+      if (transposed)
+        xof_absorb(&state, seed, i, j);
+      else
+        xof_absorb(&state, seed, j, i);
 
-      xof_absorb(&state, seed, row, col);
       shake128_squeezeblocks<GEN_MATRIX_NBLOCKS>(buf, &state);
       ctr = rej_uniform<GEN_MATRIX_NBLOCKS * XOF_BLOCKBYTES>(a[i][j], KYBER_N, buf);
 
-FIXED_REJECTIONS:
-      for (k = 0; k < MAX_UNIFORM_REJECTIONS; k++) {
-        bit32_t mask = (ctr < KYBER_N) ? 1 : 0; 
+REJECTION_SAMPLE:
+      while (ctr < KYBER_N) {
         shake128_squeezeblocks<1>(buf, &state);
-        ctr += mask * rej_uniform<XOF_BLOCKBYTES>(
-            a[i][j] + ctr, KYBER_N - ctr, buf);
+        ctr += rej_uniform<XOF_BLOCKBYTES>(a[i][j] + ctr, KYBER_N - ctr, buf);
       }
     }
   }

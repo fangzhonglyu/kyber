@@ -25,7 +25,7 @@ open_solution "solution1"
 set_part {xc7z020clg484-1}
 
 # Target clock period is 10ns
-create_clock -period 10
+create_clock -period 9
 
 ### You can insert your own directives here ###
 
