@@ -11,10 +11,9 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
-#include "top.h"
-#include "params.h"
-#include "typedefs.h"
-#include "randombytes.h"
+#include "../params.h"
+#include "../typedefs.h"
+#include "../randombytes.h"
 
 #define NTESTS 10
 #define ANSI_COLOR_RED     "\x1b[31m"
@@ -54,7 +53,7 @@ sbit16_t fqmul(sbit16_t a, sbit16_t b) {
 }
 sbit16_t barrett_reduce(sbit16_t a);
 
-void ntt_stream(sbit16_t r[256], int fdr, int fdw) {
+void ntt_stream(sbit16_t poly[256], int fdr, int fdw) {
   // Write select word
   bit32_t sel = 0;
   int nbytes = write(fdw, (void *)&sel, sizeof(sel));
@@ -80,7 +79,7 @@ void ntt_stream(sbit16_t r[256], int fdr, int fdw) {
     poly[i + 1] = output_word( 31, 16 );
   }
 }
-void invntt_stream(sbit16_t r[256], int fdr, int fdw) {
+void invntt_stream(sbit16_t poly[256], int fdr, int fdw) {
   // Write select word
   bit32_t sel = 1;
   int nbytes = write(fdw, (void *)&sel, sizeof(sel));
