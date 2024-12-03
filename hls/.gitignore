@@ -17,3 +17,7 @@ nistkat/*.rsp
 
 *.prj
 vivado_hls.log
+
+zedboard_project/
+zedboard_project.tgz
+xillydemo.bit
