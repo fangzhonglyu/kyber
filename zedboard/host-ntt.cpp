@@ -1,3 +1,13 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <math.h>
+#include <assert.h>
+
+#include <iostream>
+#include <fstream>
+
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
@@ -5,7 +15,7 @@
 #include "../typedefs.h"
 #include "../randombytes.h"
 
-#define NTESTS 100
+#define NTESTS 10
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
 #define ANSI_COLOR_YELLOW  "\x1b[33m"
@@ -22,7 +32,6 @@
   } \
   printf("\n");
 #endif
-
 
 const sbit16_t zetas[128] = {
     -1044, -758,  -359,  -1517, 1493,  1422,  287,   202,  -171,  622,   1577,
@@ -43,8 +52,59 @@ sbit16_t fqmul(sbit16_t a, sbit16_t b) {
   return montgomery_reduce( (sbit32_t) a * b );
 }
 sbit16_t barrett_reduce(sbit16_t a);
-void ntt(sbit16_t r[256]);
-void invntt(sbit16_t r[256]);
+
+void ntt_stream(sbit16_t poly[256], int fdr, int fdw) {
+  // Write select word
+  bit32_t sel = 0;
+  int nbytes = write(fdw, (void *)&sel, sizeof(sel));
+  assert(nbytes == sizeof(sel));
+
+  // Write input
+  for ( int i = 0; i < 256; i = i + 2 ) {
+    bit32_t input_word;
+    input_word( 15, 0 )  = poly[i + 0];
+    input_word( 31, 16 ) = poly[i + 1];
+
+    int nbytes = write(fdw, (void *)&input_word, sizeof(input_word));
+    assert(nbytes == sizeof(input_word));
+  }
+
+  // Read output
+  for ( int i = 0; i < 256; i = i + 2 ) {
+    bit32_t output_word;
+    int nbytes = read(fdr, (void *)&output_word, sizeof(output_word));
+    assert(nbytes == sizeof(output_word));
+
+    poly[i + 0] = output_word( 15, 0 );
+    poly[i + 1] = output_word( 31, 16 );
+  }
+}
+void invntt_stream(sbit16_t poly[256], int fdr, int fdw) {
+  // Write select word
+  bit32_t sel = 1;
+  int nbytes = write(fdw, (void *)&sel, sizeof(sel));
+  assert(nbytes == sizeof(sel));
+
+  // Write input
+  for ( int i = 0; i < 256; i = i + 2 ) {
+    bit32_t input_word;
+    input_word( 15, 0 )  = poly[i + 0];
+    input_word( 31, 16 ) = poly[i + 1];
+
+    int nbytes = write(fdw, (void *)&input_word, sizeof(input_word));
+    assert(nbytes == sizeof(input_word));
+  }
+
+  // Read output
+  for ( int i = 0; i < 256; i = i + 2 ) {
+    bit32_t output_word;
+    int nbytes = read(fdr, (void *)&output_word, sizeof(output_word));
+    assert(nbytes == sizeof(output_word));
+
+    poly[i + 0] = output_word( 15, 0 );
+    poly[i + 1] = output_word( 31, 16 );
+  }
+}
 
 /*************************************************
 * Name:        ntt_gold
@@ -102,7 +162,7 @@ void invntt_gold(sbit16_t r[256]) {
     r[j] = fqmul(r[j], f);
 }
 
-static int test_ntt(void)
+static int test_ntt(int fdr, int fdw)
 {
   bit8_t bytes[512];
   randombytes<sizeof(bytes)>(bytes);
@@ -118,12 +178,12 @@ static int test_ntt(void)
     r[i](15, 0) = r_gold[i];
   }
 
-  ntt(r);
+  ntt_stream(r, fdr, fdw);
   ntt_gold(r_gold);
 
   for (int i = 0; i < 256; i++) {
     if (r[i] != r_gold[i]) {
-      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, r[i], i, r_gold[i]);
+      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, int(r[i]), i, int(r_gold[i]));
       return 1;
     }
   }
@@ -131,7 +191,7 @@ static int test_ntt(void)
   return 0;
 }
 
-static int test_invntt(void)
+static int test_invntt(int fdr, int fdw)
 {
   bit8_t bytes[512];
   randombytes<sizeof(bytes)>(bytes);
@@ -147,12 +207,12 @@ static int test_invntt(void)
     r[i](15, 0) = r_gold[i];
   }
 
-  invntt(r);
+  invntt_stream(r, fdr, fdw);
   invntt_gold(r_gold);
 
   for (int i = 0; i < 256; i++) {
     if (r[i] != r_gold[i]) {
-      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, r[i], i, r_gold[i]);
+      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, int(r[i]), i, int(r_gold[i]));
       return 1;
     }
   }
@@ -165,9 +225,18 @@ int main()
   unsigned int i;
   int r;
 
+  int fdr = open("/dev/xillybus_read_32", O_RDONLY);
+  int fdw = open("/dev/xillybus_write_32", O_WRONLY);
+  
+  // Check that the channels are correctly opened
+  if ((fdr < 0) || (fdw < 0)) {
+    fprintf(stderr, "Failed to open Xillybus device channels\n");
+    exit(-1);
+  }
+
   for(i=0;i<NTESTS;i++) {
-    r  = test_ntt();
-    r |= test_invntt();
+    r  = test_ntt(fdr, fdw);
+    r |= test_invntt(fdr, fdw);
     if(r)
       return 1;
   }

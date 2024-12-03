@@ -123,7 +123,7 @@ static int test_ntt(void)
 
   for (int i = 0; i < 256; i++) {
     if (r[i] != r_gold[i]) {
-      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, r[i], i, r_gold[i]);
+      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, int(r[i]), i, int(r_gold[i]));
       return 1;
     }
   }
@@ -152,7 +152,7 @@ static int test_invntt(void)
 
   for (int i = 0; i < 256; i++) {
     if (r[i] != r_gold[i]) {
-      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, r[i], i, r_gold[i]);
+      printf(ANSI_COLOR_RED "ERROR" ANSI_COLOR_RESET " ntt[%d] = %d, ntt_gold[%d] = %d\n", i, int(r[i]), i, int(r_gold[i]));
       return 1;
     }
   }
@@ -171,6 +171,7 @@ int main()
     if(r)
       return 1;
   }
+  printf(ANSI_COLOR_GREEN "SUCCESS!" ANSI_COLOR_RESET "\n");
 
   return 0;
 }

@@ -19,7 +19,7 @@ kyber-arm: top.cpp test/test_kyber.cpp
 	@echo "Compiling & executing kyber software program on ARM ..."
 	g++ ${CFLAGS} $^ -o $@ -std=c++11
 
-ntt-arm: ntt.h test/test_ntt.cpp
+ntt-arm: ntt-fpga.cpp test/test_ntt.cpp
 	@echo "Compiling & executing ntt software program on ARM ..."
 	g++ ${CFLAGS} $^ -o $@ -std=c++11
 
@@ -39,7 +39,7 @@ kyber-fpga: host.cpp top.cpp
 	g++ ${CFLAGS} $^ -o $@ -std=c++11
 	@echo "Make sure bitstream is loaded!"
 
-ntt-fpga: host-ntt.cpp
+ntt-fpga: host-ntt.cpp ntt-fpga.cpp
 	@echo "Compiling host program"
 	g++ ${CFLAGS} $^ -o $@
 	@echo "Make sure bitstream is loaded!"
