@@ -88,6 +88,7 @@ build/test_kyber: test/test_kyber_cosim.cpp build/top.o $(BUILD)
 clean:
 	-$(RM) -f *.gcno *.gcda *.lcov *.o *.so vivado_hls.log
 	-$(RM) -rf lib/ $(BUILD) *.prj
+	-$(RM) -rf zedboard_project* xillydemo.bit
 
 # ------------------------------------------------------------------------
 # Synthesis
@@ -104,8 +105,8 @@ synth-ntt:
 synth-ntt-opt:
 	$(XIL_HLS) -f run-ntt-opt.tcl
 
-bitstream: synth
+bitstream: kyber.prj
 	source $(XILINX_VIVADO)/settings64.sh; ./run_bitstream.sh kyber.prj
 
-bitstream-ntt: synth-ntt
+bitstream-ntt: ntt.prj
 	source $(XILINX_VIVADO)/settings64.sh; ./run_bitstream.sh ntt.prj
