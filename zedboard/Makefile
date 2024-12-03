@@ -19,14 +19,27 @@ kyber-arm: top.cpp test/test_kyber.cpp
 	@echo "Compiling & executing kyber software program on ARM ..."
 	g++ ${CFLAGS} $^ -o $@ -std=c++11
 
+ntt-arm: ntt.h test/test_ntt.cpp
+	@echo "Compiling & executing ntt software program on ARM ..."
+	g++ ${CFLAGS} $^ -o $@ -std=c++11
+
 result/kyber_arm_sim.txt: kyber-arm
 	mkdir -p result
 	./$< | tee $@
 
-sw: result/kyber_arm_sim.txt
+result/ntt_arm_sim.txt: ntt-arm
+	mkdir -p result
+	./$< | tee $@
+
+sw: result/kyber_arm_sim.txt result/ntt_arm_sim.txt
 	@echo "Result saved to $@"
 
-kyber-fpga: host.cpp
+kyber-fpga: host-ntt.cpp ntt-fpga.cpp
+	@echo "Compiling host program"
+	g++ ${CFLAGS} $^ -o $@
+	@echo "Make sure bitstream is loaded!"
+
+ntt-fpga: host-ntt.cpp
 	@echo "Compiling host program"
 	g++ ${CFLAGS} $^ -o $@
 	@echo "Make sure bitstream is loaded!"
@@ -38,5 +51,5 @@ fpga: kyber-fpga
 # Clean up the directory before submission
 clean:
 	@echo "Clean up output files"
-	rm -rf kyber-arm vivado_hls.log *.prj result out.dat *~
-	rm -rf kyber-fpga
+	rm -rf kyber-arm kyber-ntt vivado_hls.log *.prj result out.dat *~
+	rm -rf kyber-fpga ntt-fpga
