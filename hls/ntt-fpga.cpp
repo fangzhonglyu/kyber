@@ -210,7 +210,7 @@ void dut( hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out )
 
   // Read input
   for ( int i = 0; i < 256; i = i + 2 ) {
-#pragma HLS UNROLL
+#pragma HLS PIPELINE
     bit32_t input_word;
     input_word = strm_in.read();
 
@@ -228,7 +228,7 @@ void dut( hls::stream<bit32_t> &strm_in, hls::stream<bit32_t> &strm_out )
 
   // Write resulting output
   for ( int i = 0; i < 256; i = i + 2 ) {
-#pragma HLS UNROLL
+#pragma HLS PIPELINE
     bit32_t output_word;
     output_word( 15, 0 )  = poly[i + 0];
     output_word( 31, 16 ) = poly[i + 1];

@@ -3,7 +3,10 @@
 
 #include "params.h"
 #include "reduce.h"
+#include "timer.h"
 #include "typedefs.h"
+
+Timer* ntt_timer;
 
 /* Code to generate zetas and zetas_inv used in the number-theoretic
 transform:
@@ -103,6 +106,9 @@ void ntt_fpga_helper( sbit16_t r[256] )
 
 void ntt( sbit16_t r[256] )
 {
+  if ( ntt_timer != NULL ) {
+    ntt_timer->start();
+  }
   // bit32_t  len, start, j, j_loop, k;
   // sbit16_t t, zeta;
 
@@ -129,6 +135,9 @@ void ntt( sbit16_t r[256] )
   ntt_fpga_helper<8, 16>( r );
   ntt_fpga_helper<4, 32>( r );
   ntt_fpga_helper<2, 64>( r );
+  if ( ntt_timer != NULL ) {
+    ntt_timer->stop();
+  }
 }
 
 /*************************************************
@@ -167,6 +176,9 @@ void invntt_fpga_helper( sbit16_t r[256] )
 
 void invntt( sbit16_t r[256] )
 {
+  if ( ntt_timer != NULL ) {
+    ntt_timer->start();
+  }
   // bit32_t        start, len, j, k;
   // sbit16_t       t, zeta;
   bit32_t        j;
@@ -195,6 +207,10 @@ void invntt( sbit16_t r[256] )
   for ( j = 0; j < 256; j++ )
 #pragma HLS PIPELINE
     r[j] = fqmul( r[j], f );
+
+  if ( ntt_timer != NULL ) {
+    ntt_timer->stop();
+  }
 }
 
 /*************************************************

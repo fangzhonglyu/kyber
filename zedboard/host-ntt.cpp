@@ -18,7 +18,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define REPS 50
+#define REPS 1000
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_YELLOW "\x1b[33m"
@@ -61,16 +61,17 @@ sbit16_t barrett_reduce( sbit16_t a );
 void ntt_stream( sbit16_t poly[REPS][256], int fdr, int fdw,
                  Timer *timer )
 {
+  bit32_t sel = 0;
+
   // Start timer
   timer->start();
 
-  // Write select word
-  bit32_t sel    = 0;
-  int     nbytes = write( fdw, (void *) &sel, sizeof( sel ) );
-  assert( nbytes == sizeof( sel ) );
-
   // Write input
   for ( int r = 0; r < REPS; r++ ) {
+    // Write select word
+    int nbytes = write( fdw, (void *) &sel, sizeof( sel ) );
+    assert( nbytes == sizeof( sel ) );
+
     for ( int i = 0; i < 256; i = i + 2 ) {
       bit32_t input_word;
       input_word( 15, 0 )  = poly[r][i + 0];
@@ -101,16 +102,17 @@ void ntt_stream( sbit16_t poly[REPS][256], int fdr, int fdw,
 void invntt_stream( sbit16_t poly[REPS][256], int fdr, int fdw,
                     Timer *timer )
 {
+  bit32_t sel = 1;
+
   // Start timer
   timer->start();
 
-  // Write select word
-  bit32_t sel    = 1;
-  int     nbytes = write( fdw, (void *) &sel, sizeof( sel ) );
-  assert( nbytes == sizeof( sel ) );
-
   // Write input
   for ( int r = 0; r < REPS; r++ ) {
+    // Write select word
+    int nbytes = write( fdw, (void *) &sel, sizeof( sel ) );
+    assert( nbytes == sizeof( sel ) );
+
     for ( int i = 0; i < 256; i = i + 2 ) {
       bit32_t input_word;
       input_word( 15, 0 )  = poly[r][i + 0];
@@ -230,7 +232,7 @@ static int test_ntt( int fdr, int fdw )
 
   for ( int r = 0; r < REPS; r++ ) {
     for ( int i = 0; i < 256; i++ ) {
-      if ( poly[i] != poly_gold[i] ) {
+      if ( poly[r][i] != poly_gold[r][i] ) {
         printf( ANSI_COLOR_RED
                 "ERROR" ANSI_COLOR_RESET
                 " ntt[%d][%d] = %d, ntt_gold[%d][%d] = %d\n",
@@ -274,7 +276,7 @@ static int test_invntt( int fdr, int fdw )
 
   for ( int r = 0; r < REPS; r++ ) {
     for ( int i = 0; i < 256; i++ ) {
-      if ( poly[i] != poly_gold[i] ) {
+      if ( poly[r][i] != poly_gold[r][i] ) {
         printf( ANSI_COLOR_RED
                 "ERROR" ANSI_COLOR_RESET
                 " invntt[%d][%d] = %d, invntt_gold[%d][%d] = %d\n",
