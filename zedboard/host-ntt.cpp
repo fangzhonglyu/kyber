@@ -3,9 +3,10 @@
 // =======================================================================
 // A host for running only ntt/invntt on the FPGA
 
-#include "../params.h"
-#include "../randombytes.h"
-#include "../typedefs.h"
+#include "params.h"
+#include "randombytes.h"
+#include "timer.h"
+#include "typedefs.h"
 #include <assert.h>
 #include <fcntl.h>
 #include <fstream>
@@ -17,7 +18,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define NTESTS 10
+#define REPS 50
 #define ANSI_COLOR_RED "\x1b[31m"
 #define ANSI_COLOR_GREEN "\x1b[32m"
 #define ANSI_COLOR_YELLOW "\x1b[33m"
@@ -57,7 +58,8 @@ sbit16_t fqmul( sbit16_t a, sbit16_t b )
 }
 sbit16_t barrett_reduce( sbit16_t a );
 
-void ntt_stream( sbit16_t poly[256], int fdr, int fdw, Timer *timer )
+void ntt_stream( sbit16_t poly[REPS][256], int fdr, int fdw,
+                 Timer *timer )
 {
   // Start timer
   timer->start();
@@ -200,7 +202,9 @@ void invntt_gold( sbit16_t r[256] )
 static int test_ntt( int fdr, int fdw )
 {
   bit8_t bytes[REPS][512];
-  randombytes<sizeof( bytes )>( bytes );
+  for ( int r = 0; r < REPS; r++ ) {
+    randombytes<sizeof( bytes[r] )>( bytes[r] );
+  }
 
   sbit16_t poly_gold[REPS][256];
   for ( int r = 0; r < REPS; r++ ) {
@@ -242,7 +246,9 @@ static int test_ntt( int fdr, int fdw )
 static int test_invntt( int fdr, int fdw )
 {
   bit8_t bytes[REPS][512];
-  randombytes<sizeof( bytes )>( bytes );
+  for ( int r = 0; r < REPS; r++ ) {
+    randombytes<sizeof( bytes[r] )>( bytes[r] );
+  }
 
   sbit16_t poly_gold[REPS][256];
   for ( int r = 0; r < REPS; r++ ) {
