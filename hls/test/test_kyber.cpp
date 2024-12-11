@@ -1,4 +1,3 @@
-#include "../ntt.h"
 #include "../timer.h"
 #include "../top.h"
 #include <stddef.h>
@@ -51,10 +50,7 @@ static int test_keys( void )
   keypair( pk, sk );
 
   // Bob derives a secret key and creates a response
-  Timer total_time( "total_time" );
-  total_time.start();
   enc( ct, key_b, pk );
-  total_time.stop();
 
   // Alice uses Bobs response to get her shared key
   dec( key_a, ct, sk );
@@ -202,7 +198,6 @@ int main()
 {
   unsigned int i;
   int          r;
-  ntt_timer = NULL;
 
   for ( i = 0; i < NTESTS; i++ ) {
     r = test_keys();
