@@ -51,11 +51,12 @@ static int test_keys( void )
 
   // Bob derives a secret key and creates a response
   Timer ntt_time( "ntt_time" );
-  *ntt_timer = ntt_time;
+  ntt_timer = &ntt_time;
   Timer total_time( "total_time" );
   total_time.start();
   enc( ct, key_b, pk );
   total_timer.stop();
+  ntt_timer = NULL;
 
   // Alice uses Bobs response to get her shared key
   dec( key_a, ct, sk );
