@@ -20,11 +20,12 @@
 \usepackage{etoolbox}           % Used to modify bib title size
 \usepackage{fancyhdr}           % Used to customize footer
 \usepackage{graphicx}           % Used for inserting images
+\usepackage{hyperref}           % Used for URL creation
 \usepackage{mathpazo}           % Use for Palatino
 \usepackage{setspace}           % Used to set spacing
 \usepackage{sourcecodepro}      % Used for monospace font
 \usepackage{titlesec}           % Used to change section spacing
-\usepackage{url}                % Used for URL creation
+\usepackage{wrapfig}            % Used for wrapping figures
 \usepackage[dvipsnames]{xcolor} % Used for color
 
 % ---------------------------------------------------------
@@ -54,12 +55,29 @@
 \setlength{\headheight}{0pt}
 \setlength{\footskip}{4.35004pt}
 
-% Reduce bibliography title size
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% References Title
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 \makeatletter
 \patchcmd{\thebibliography}{%
   \chapter*{\bibname}\@mkboth{\MakeUppercase\bibname}{\MakeUppercase\bibname}}{%
   \section*{References}}{}{}
 \makeatother
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Hyperlink Setup
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=cornell,
+  filecolor=magenta,      
+  urlcolor=blue,
+  pdftitle={Overleaf Example},
+  pdfpagemode=FullScreen,
+}
 
 % ---------------------------------------------------------
 % Metadata
