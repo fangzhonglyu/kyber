@@ -1,0 +1,107 @@
+% =========================================================
+% ECE 6775 Final Project Report
+% =========================================================
+
+% ---------------------------------------------------------
+% Boilerplate
+% ---------------------------------------------------------
+
+\documentclass[12pt]{article}
+\usepackage[
+  margin=0.70in,
+  includefoot,
+  footskip=4pt
+]{geometry}
+
+% ---------------------------------------------------------
+% Packages
+% ---------------------------------------------------------
+
+\usepackage{etoolbox}           % Used to modify bib title size
+\usepackage{fancyhdr}           % Used to customize footer
+\usepackage{graphicx}           % Used for inserting images
+\usepackage{mathpazo}           % Use for Palatino
+\usepackage{setspace}           % Used to set spacing
+\usepackage{sourcecodepro}      % Used for monospace font
+\usepackage{titlesec}           % Used to change section spacing
+\usepackage{url}                % Used for URL creation
+\usepackage[dvipsnames]{xcolor} % Used for color
+
+% ---------------------------------------------------------
+% Defines
+% ---------------------------------------------------------
+
+% Colors
+\definecolor{cornell}{HTML}{B31B1B}
+
+% Functions
+\def\code#1{\textbf{\texttt{#1}}}
+\def\bigred#1{\textcolor{cornell}{#1}}
+
+% ---------------------------------------------------------
+% Setup
+% ---------------------------------------------------------
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Page Setup
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\singlespacing
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt} % Remove top bar
+\setlength{\headheight}{0pt}
+\setlength{\footskip}{4.35004pt}
+
+% Reduce bibliography title size
+\makeatletter
+\patchcmd{\thebibliography}{%
+  \chapter*{\bibname}\@mkboth{\MakeUppercase\bibname}{\MakeUppercase\bibname}}{%
+  \section*{References}}{}{}
+\makeatother
+
+% ---------------------------------------------------------
+% Metadata
+% ---------------------------------------------------------
+
+\title{
+  ECE 6775 Final Project: FPGA Acceleration of Post-Quantum Cryptography
+}
+\author{
+  Aidan McNay \\(\texttt{\bigred{acm289}})
+  \and
+  Barry Lyu \\(\texttt{\bigred{fl327}})
+  \and
+  Edmund Lam \\(\texttt{\bigred{el595}})
+  \and
+  Nita Kattimani \\(\texttt{\bigred{nsk62}})
+}
+
+\makeatletter
+\renewcommand{\maketitle}{
+  \begin{center}
+    {\LARGE\textbf{\@title}}
+    \par\vspace{1ex}
+    \begin{tabular}[t]{c}
+      \@author
+    \end{tabular}
+  \end{center}
+}
+\makeatother
+
+% ---------------------------------------------------------
+% Main Document
+% ---------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+
+\input{sections/intro}
+
+\newpage
+
+\bibliographystyle{IEEEtran}
+\bibliography{sources}
+\end{document}
