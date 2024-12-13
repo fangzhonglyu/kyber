@@ -1,0 +1,166 @@
+% =========================================================
+% ECE 6775 Final Project Report
+% =========================================================
+
+% ---------------------------------------------------------
+% Boilerplate
+% ---------------------------------------------------------
+
+\documentclass[10pt]{article}
+\usepackage[
+  margin=0.70in,
+  includefoot,
+  footskip=4pt
+]{geometry}
+
+% ---------------------------------------------------------
+% Packages
+% ---------------------------------------------------------
+
+\usepackage{etoolbox}           % Used to modify bib title size
+\usepackage{fancyhdr}           % Used to customize footer
+\usepackage{graphicx}           % Used for inserting images
+\usepackage{hyperref}           % Used for URL creation
+\usepackage{mathpazo}           % Use for Palatino
+\usepackage{setspace}           % Used to set spacing
+\usepackage{sourcecodepro}      % Used for monospace font
+\usepackage{titlesec}           % Used to change section spacing
+\usepackage{wrapfig}            % Used for wrapping figures
+\usepackage[dvipsnames]{xcolor} % Used for color
+
+% ---------------------------------------------------------
+% Defines
+% ---------------------------------------------------------
+
+% Colors
+\definecolor{cornell}{HTML}{B31B1B}
+
+% Functions
+\def\code#1{\textbf{\texttt{#1}}}
+\def\bigred#1{\textcolor{cornell}{#1}}
+
+% ---------------------------------------------------------
+% Setup
+% ---------------------------------------------------------
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Page Setup
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\singlespacing
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt} % Remove top bar
+\setlength{\headheight}{0pt}
+\setlength{\footskip}{4.35004pt}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% References Title
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\makeatletter
+\patchcmd{\thebibliography}{%
+  \chapter*{\bibname}\@mkboth{\MakeUppercase\bibname}{\MakeUppercase\bibname}}{%
+  \section*{References}}{}{}
+\makeatother
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Hyperlink Setup
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=cornell,
+  filecolor=magenta,      
+  urlcolor=blue,
+  pdftitle={Overleaf Example},
+  pdfpagemode=FullScreen,
+}
+
+% ---------------------------------------------------------
+% Metadata
+% ---------------------------------------------------------
+
+\title{
+  ECE 6775 Final Project: FPGA Acceleration of Post-Quantum Cryptography
+}
+\author{
+  Aidan McNay \\(\texttt{\bigred{acm289}})
+  \and
+  Barry Lyu \\(\texttt{\bigred{fl327}})
+  \and
+  Edmund Lam \\(\texttt{\bigred{el595}})
+  \and
+  Nita Kattimani \\(\texttt{\bigred{nsk62}})
+}
+
+\makeatletter
+\renewcommand{\maketitle}{
+  \begin{center}
+    {\LARGE\textbf{\@title}}
+    \par\vspace{1ex}
+    \begin{tabular}[t]{c}
+      \@author
+    \end{tabular}
+  \end{center}
+}
+\makeatother
+
+% ---------------------------------------------------------
+% Main Document
+% ---------------------------------------------------------
+
+\begin{document}
+
+\maketitle
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Introduction
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\input{sections/intro}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Problem Description
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\input{sections/kyber-overview.tex}
+\input{sections/kyber-components.tex}
+\input{sections/ntt-optimizations.tex}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Implementations
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\input{sections/fpga-implementations.tex}
+\input{sections/fpga-steps.tex}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Evaluation
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\input{sections/fpga-results.tex}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Project Management
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\input{sections/project-management.tex}
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% Conclusion/Acknowledgements
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\input{sections/conclusion.tex}
+
+\newpage
+
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+% References
+% - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+\bibliographystyle{IEEEtran}
+\bibliography{sources}
+\end{document}
