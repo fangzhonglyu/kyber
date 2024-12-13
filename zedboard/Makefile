@@ -16,23 +16,12 @@ CFLAGS = -I${INC_PATH} -DHLS_NO_XIL_FPO_LIB -O3
 all: sw
 
 kyber-arm: top.cpp test/test_kyber.cpp
-	@echo "Compiling & executing kyber software program on ARM ..."
+	@echo "Compiling kyber software program on ARM ..."
 	g++ ${CFLAGS} $^ -o $@ -std=c++11
 
 ntt-arm: ntt-fpga.cpp test/test_ntt.cpp
-	@echo "Compiling & executing ntt software program on ARM ..."
+	@echo "Compiling ntt software program on ARM ..."
 	g++ ${CFLAGS} $^ -o $@ -std=c++11
-
-result/kyber_arm_sim.txt: kyber-arm
-	mkdir -p result
-	./$< | tee $@
-
-result/ntt_arm_sim.txt: ntt-arm
-	mkdir -p result
-	./$< | tee $@
-
-sw: result/kyber_arm_sim.txt result/ntt_arm_sim.txt
-	@echo "Result saved to $@"
 
 kyber-fpga: host.cpp top.cpp
 	@echo "Compiling host program"
@@ -43,10 +32,6 @@ ntt-fpga: host-ntt.cpp ntt-fpga.cpp
 	@echo "Compiling host program"
 	g++ ${CFLAGS} $^ -o $@
 	@echo "Make sure bitstream is loaded!"
-
-fpga: kyber-fpga
-	@echo "Running kyber accelerator ..."
-	./$<
 
 # Clean up the directory before submission
 clean:
