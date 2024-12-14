@@ -1,87 +1,85 @@
-# Kyber
+# ECE 6775 Final Project: FPGA Acceleration of Post-Quantum Cryptography
 
-[![Build Status](https://travis-ci.org/pq-crystals/kyber.svg?branch=master)](https://travis-ci.org/pq-crystals/kyber) 
-[![Coverage Status](https://coveralls.io/repos/github/pq-crystals/kyber/badge.svg?branch=master)](https://coveralls.io/github/pq-crystals/kyber?branch=master)
+In this project, we explored porting the
+[reference CRYSTALS-Kyber implementation](https://github.com/pq-crystals/kyber)
+to FPGA hardware using Vivado HLS.
 
-This repository contains the official reference implementation of the [Kyber](https://www.pq-crystals.org/kyber/) key encapsulation mechanism, 
-and an optimized implementation for x86 CPUs supporting the AVX2 instruction set. 
-Kyber has been selected for standardization in [round 3](https://csrc.nist.gov/Projects/post-quantum-cryptography/round-3-submissions) 
-of the [NIST PQC](https://csrc.nist.gov/projects/post-quantum-cryptography) standardization project.
+Authors:
+ - Aidan McNay (acm289)
+ - Barry Lyu (fl327)
+ - Edmund Lam (el595)
+ - Nita Kattimani (nsk62)
 
+# Synthesis
 
-## Build instructions
+We have two different implementations of Kyber for the FPGA:
+ - One with the entire design on the FPGA (`full-kyber`)
+ - One with only the NTT kernel on the FPGA, using more optimizations (`ntt`)
 
-The implementations contain several test and benchmarking programs and a Makefile to facilitate compilation.
+To make the bitstream for `full-kyber`:
 
-### Prerequisites
-
-Some of the test programs require [OpenSSL](https://openssl.org). 
-If the OpenSSL header files and/or shared libraries do not lie in one of the standard locations on your system, 
-it is necessary to specify their location via compiler and linker flags in the environment variables `CFLAGS`, `NISTFLAGS`, and `LDFLAGS`.
-
-For example, on macOS you can install OpenSSL via [Homebrew](https://brew.sh) by running
-```sh
-brew install openssl
+```bash
+cd hls
+make synth     # Synthesize the design using run.tcl
+make bitstream # Make the bitstream using 
 ```
-Then, run
-```sh
-export CFLAGS="-I/usr/local/opt/openssl@1.1/include"
-export NISTFLAGS="-I/usr/local/opt/openssl@1.1/include"
-export LDFLAGS="-L/usr/local/opt/openssl@1.1/lib"
+
+To make the bitstream for `ntt`:
+
+```bash
+cd hls
+make synth-ntt     # Synthesize the design using run-ntt.tcl
+make bitstream-ntt # Make the bitstream using 
 ```
-before compilation to add the OpenSSL header and library locations to the respective search paths.
 
-### Building all binaries
+Both of these will leave you with a `xillidemo.bit`, a bitstream that
+can be loaded onto the Zynq FPGA as previously done in class. Synthesis
+will additionally test our designs with `hls/test/test_kyber_cosim.cpp` and
+`hls/test/test_ntt.cpp`, to verify the functionality. Note that the entire
+implementation uses a different testing file for simulation compared to the
+actual implementation, as to not run the many batch jobs needed for analysis
+in simulation.
 
-To compile the test and benchmarking programs on Linux or macOS, go to the `ref/` or `avx2/` directory and run
-```sh
-make
+# Running on the FPGA
+
+To run either bitstream on the FPGA, you will need a copy of the
+repository on the FPGA, so that the software can access the Linux
+file objects to read/write to the hardware streams.
+
+## Software Implementation
+
+To generate and run the pure software implementation of the Kyber tests:
+
+```bash
+cd zedboard
+make kyber-arm # Makes the software binary
+./kyber-arm
 ```
-This produces the executables
-```sh
-test/test_kyber$ALG
-test/test_vectors$ALG
-test/test_speed$ALG
+
+To generate and run the pure software implementation of the NTT tests:
+
+```bash
+cd zedboard
+make ntt-arm # Makes the software binary
+./ntt-arm
 ```
-where `$ALG` ranges over the parameter sets 512, 768, 1024.
 
-* `test_kyber$ALG` tests 1000 times to generate keys, encapsulate a random key and correctly decapsulate it again. 
-  Also, the program tests that the keys cannot correctly be decapsulated using a random secret key 
-  or a ciphertext where a single random byte was randomly distorted in order to test for trivial failures of the CCA security. 
-  The program will abort with an error message and return 1 if there was an error. 
-  Otherwise it will output the key and ciphertext sizes and return 0.
-* `test_vectors$ALG` generates 10000 sets of test vectors containing keys, ciphertexts and shared secrets 
-  whose byte-strings are output in hexadecimal. It also generates test vector for decapsulation of invalid
-  (pseudorandom) ciphertexts.
-  The required random bytes are deterministic and come from SHAKE128 on empty input.
-* `test_speed$ALG` reports the median and average cycle counts of 1000 executions of various internal functions 
-  and the API functions for key generation, encapsulation and decapsulation. 
-  By default the Time Step Counter is used. 
-  If instead you want to obtain the actual cycle counts from the Performance Measurement Counters, export `CFLAGS="-DUSE_RDPMC"` before compilation.
+## FPGA Implementations
 
-Please note that the reference implementation in `ref/` is not optimized for any platform, and, since it prioritises clean code, 
-is significantly slower than a trivially optimized but still platform-independent implementation. 
-Hence benchmarking the reference code does not provide particularly meaningful results.
+To run the Kyber implementation on the FPGA, assuming that the `full-kyber`
+bitstream is loaded:
 
-<!--
-Our Kyber implementations are contained in the [SUPERCOP](https://bench.cr.yp.to) benchmarking framework. 
-See [here](http://bench.cr.yp.to/results-kem.html#amd64-kizomba) for cycle counts on an Intel KabyLake CPU.
--->
-
-## Shared libraries
-
-All implementations can be compiled into shared libraries by running
-```sh
-make shared
+```bash
+cd zedboard
+make kyber-fpga # Make the binary that access the FPGA hardware
+./kyber-fpga
 ```
-For example in the directory `ref/` of the reference implementation, this produces the libraries
-```sh
-libpqcrystals_kyber$ALG_ref.so
-```
-for all parameter sets `$ALG`, and the required symmetric crypto libraries
-```
-libpqcrystals_aes256ctr_ref.so
-libpqcrystals_fips202_ref.so
-```
-All global symbols in the libraries lie in the namespaces `pqcrystals_kyber$ALG_ref`, `libpqcrystals_aes256ctr_ref` and `libpqcrystals_fips202_ref`. Hence it is possible to link a program against all libraries simultaneously and obtain access to all implementations for all parameter sets. The corresponding API header file is `ref/api.h`, which contains prototypes for all API functions and preprocessor defines for the key and signature lengths.
 
+To run the NTT implementation on the FPGA, assuming that the `ntt`
+bitstream is loaded:
+
+```bash
+cd zedboard
+make ntt-fpga # Make the binary that access the FPGA hardware
+./ntt-fpga
+```
