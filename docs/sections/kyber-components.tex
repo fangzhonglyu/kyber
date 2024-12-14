@@ -6,12 +6,21 @@
 
 \subsection*{Components of the Kyber Algorithm}
 
-The Kyber algorithm consists of several core components, namely
+We have identified the following key components of the kyber algorithm through profiling. 
+These components are essential to the algorithm and are the focus of our optimization efforts as 
+they dominate the runtime of the algorithm.
 \begin{itemize}
-    \item Random/Noise Sampling
-    \item Number Theoretic Transform (NTT) and Inverse NTT
-    \item Montgomery Reduction
+    \item Random/Noise Sampling (25\%)
+    \item Number Theoretic Transform (NTT) and Inverse NTT (30\%)
+    \item Montgomery Reduction (35\%)
 \end{itemize}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=\linewidth]{imgs/flame-graph.png}
+    \caption{Flame graph of the reference software Kyber implementation}
+    \label{fig:intro-timeline}
+\end{figure}
 
 \paragraph{Random/Noise Sampling.}
 Random seeding, generated from expanding a uniformly random matrix, is used during the key generation and encapsulation 
@@ -36,4 +45,3 @@ operations. It is used in many important cryptographic algorithms, including RSA
 It is slower than a conventional Barret reduction for single products but is significantly faster for many 
 modular multiplications in a row. In Kyber, both Montgomery and Barret reduction are used to reduce the runtime of the
 algorithm.
-
