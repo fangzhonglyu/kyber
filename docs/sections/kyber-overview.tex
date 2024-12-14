@@ -36,7 +36,7 @@ The encryption process is designed such that multiple encryptions of the same me
 
 \subsubsection*{Decryption}
 
-Given the ciphertext $(u, v)$, the decryption process is as follows:
+Given the ciphertext $(u, v)$, the decryption process calculates $m \approx v - s^Tu$. Following the algebra, we have:
 
 \begin{align*}
   v - s^Tu & = (t^Tr + e_2 + m) - s^T (A^Tr + e_1)                              \\
