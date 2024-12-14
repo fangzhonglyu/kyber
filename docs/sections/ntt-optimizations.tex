@@ -36,7 +36,8 @@ go through the bitsteam successfully. The optimizations of our most optimized de
 2nd most optimized design, which had a latency of 2070 cycles. The main difference was array partitioning the input of the NTT and 
 INVTT functions. Removing this achieved our second most optimized design which was used 1\% of the BRAM\_18K Blocks, 5\% of the DSPE48 
 Blocks, 10 \% of the flip flops, and  65\% of the look up tables. It achieved a 3.34x speed up, which is not as great as 4.33x speed up,
-but managed to achieve that by using significantly less resources. It more importantly, succesfully could run on the board.
+but managed to achieve that by using significantly less resources. It more importantly, succesfully could run on the board unlike the most
+optimized implementation.
 
   Overall, using loop unrolling, pipelining, and array partitioning, we achieved a significant latency reduction (up to 4.33x speed-up).
 The juxtaposition between the most optimized and second most optimized designs highlighted the trade-off between latency reduction and
