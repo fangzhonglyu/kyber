@@ -89,12 +89,23 @@ this case from the lack of aggressive pipelining/unrolling.
 
 In addition to the hardware utilization of each design, we
 also compare about the predicted latency of each design;
-how many cycles each design should take. For the NTT
+how many cycles each design should take. This is shown as a
+range for both designs in Figure \ref{fig:results-synth-lat}. For the NTT
 algorithms, the latency is uncertain, as it depends on which
 operation we're performing. Performing an NTT operation takes
-2610 cycles, whereas performing an INVNTT operation takes 4378
-cycles due to an extra multiplication reduction step needed at
-the end.
+\textbf{2610 cycles}, whereas performing an INVNTT operation takes
+\textbf{4378 cycles} due to an extra multiplication reduction step needed at
+the end. However, for the entire design, the lowest latency
+was \textbf{501453 cycles} (on the order as expected), but the tools
+could not compute an upper latency bound. When we fixed the
+offending loops to have constant bounds, the maximum possible
+latency was astronomical (on the order of ~1000 seconds). This
+is because the algorithm currently uses rejection sampling to
+achieve a random number in the modular ring for Kyber. In
+practice, many rejections are likely not needed (or algorithmic
+changes could be made to use a modulus instead of random
+sampling, albeit affecting the distribution), so our design
+can be best approximated by the lower bound.
 
 % ---------------------------------------------------------
 % Experimental
@@ -103,3 +114,54 @@ the end.
 % FPGA
 
 \subsection*{Experimental}
+
+In addition to theoretical results, we additionally used
+Vivado's HLS tools to generate bitstreams for both
+implementations, such that they could be used on the FPGA.
+This allowed us to write host-side code to run on the ARM
+core and interact with our designs to measure their actual
+execution time, the results of which are shown in Figure
+\ref{fig:results-exp-time}. Measurements were done by running
+the desired algorithm 20 times by feeding 20 inputs, then
+reading the resulting 20 outputs, in order to amortize the
+communication latency.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.5\linewidth]{imgs/results-exp-time.png}
+  \caption{
+    The measured execution time of the different Kyber
+    implementations on the FPGA
+  }
+  \label{fig:results-exp-time}
+\end{figure}
+
+From the figure, we can see that the NTT algorithms in hardware
+(taking \textbf{105.463 ms}) resulted in some speedup over a pure
+software implementation (\textbf{120.859 ms}), but were overall
+limited in their speedup from the fact that the majority of the
+Kyber algorithm was still in software. Even though we significantly
+optimized the NTT/INVNTT portions of the algorithm, they only
+composed an overall (\textbf{28.354 ms}) of the algorithm, with
+the other (\textbf{77.108 ms}) representing the remaining (unoptimized)
+software algorithm.
+
+Having the entire algorithm in hardware (\textbf{84.050 ms}) resulted
+in more speedup over software than just the NTT kernels, but ultimately
+not as much as we hoped. This is due to two main factors:
+
+\begin{itemize}
+  \item The ARM core is running at a faster frequency than the FPGA
+        fabric. Therefore, software algorithms, even though running on
+        general-purpose hardware, may be more competitive due to their
+        higher frequency
+  \item Kyber is composed of many different kernels and parts of the
+        algorithm, as shown in the flame graph above. Each of these
+        different operations requires different hardware to implement,
+        resulting in low levels of hardware re-use. Because of this,
+        many resources are used to simply implement the entire algorithm,
+        leaving fewer available to parallelize the operations for higher
+        performance, as was achieved in lab. We were ultimately unable to
+        optimize large portions of the design for this reason.
+\end{itemize}
+
