@@ -18,14 +18,26 @@
 
 \subsubsection*{Code Changes}
 
+A number of code changes were necessary in order to make the FPGA version of the Kyber algorithm synthesizable. The majority of the changes fell into three categories:
+\begin{enumerate}
+  \item \textbf{Integer and Numeric Types:} Calls to integral types, particularly sized integers like \texttt{uint16\_t} and \texttt{int32\_t}, were replaced with synthesizable types like \texttt{ap\_uint} and \texttt{ap\_int}. This was performed by using \texttt{typedef} to define a number of custom \texttt{ap\_uint} and \texttt{ap\_int} types with the appropriate bit widths, such as \texttt{bit16\_t} for an unsigned 16-bit integer.
+  \item \textbf{Standard Library Functions:} The reference Kyber algorithm used a number of standard library functions, mainly for memory allocation and manipulation. The majority of these were calls to \texttt{memset} and \texttt{memcpy}, which were replaced with loops that performed the same operations.
+  \item \textbf{Structures and Unknown Array Lengths:} A number of kernels in the Kyber algorithm, particularly in the functions used to implement the shake algorithm, used arrays of structures representing polynomial vectors and matrices. As the original algorithm was implemented in pure C, these lengths were passed in as arguments, and the arrays were represented as pointers. In order to make these kernels synthesizable with constant latency bounds, these had to be rewritten to use template parameters for the array lengths, and using actual arrays as arguments rather than pointers. Additionally, custom types representing polynomial matriceswere replaced with multidimensional arrays to support partitioning and reshaping pragmas.
+\end{enumerate}
+
+In order to support these changes, particularly the template parameters, the implementation was refactored to use only header files. This required refactoring the build system, but the main tradeoff was the much higher compilation time due to the entire implementation being compiled as a single translation unit.
+
 % ---------------------------------------------------------
 % Simulation
 % ---------------------------------------------------------
 
 \subsubsection*{Simulation}
+The simulation of the Kyber algorithm was performed using the test benches we implemented. The test benches perform a number of encode and decode operations on random messages and keys. In order to verify the correctness of the results, it checks that decoding the encoded message results in the original message. Simulation was performed both in CSIM as well as COSIM, with the latter being used to verify the correctness of the HLS implementation in RTL.
 
 % ---------------------------------------------------------
 % Host Implementation
 % ---------------------------------------------------------
 
 \subsubsection*{Host Implementation}
+
+In order to execute the design on FPGA, we created a DUT using HLS streams in order to read the input and output values of the public/secret keys as well as the message in order to encode and decode messages. Following the implementation used in the DigitRec lab, we created a host file that generated a public/private keypair and sent this information to the DUT through the read/write pipes. In order to better measure accurate timing information, it generates 20 random messages and keys and measures the total time used to encode all 20 messages. Inputs and outputs are written and read in batches in order to minimize the communication overhead.
