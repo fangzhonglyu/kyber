@@ -11,3 +11,5 @@ build
 *.synctex.gz
 *.out
 
+*.run.xml
+*.bcf
