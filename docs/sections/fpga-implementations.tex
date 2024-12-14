@@ -7,31 +7,31 @@
 \section*{Implementations}
 
 Considering the complexity of the algorithm and FPGA resource constrainsts.
-We have two different FPGA implementations: The first implementation just accelerates the NTT and Inverse 
-NTT operations, while the second implementation accelerates the entire Kyber algorithm. 
+We have two different FPGA implementations: The first implementation just accelerates the NTT and Inverse
+NTT operations, while the second implementation accelerates the entire Kyber algorithm.
 In this section we will talk about the optimizations we did for each implementation, as well as the trade-offs we made.
 
-\subsection{NTT and Inverse NTT}
-For the first implementation, we focused on accelerating the NTT and Inverse NTT operations. 
+\subsection*{NTT and Inverse NTT}
+For the first implementation, we focused on accelerating the NTT and Inverse NTT operations.
 We optimized the NTT and Inverse NTT kernels by aggresively unrolling loops and pipelining the design.
-We changed our kyber code such that whenever the NTT function is called, the host would stream data to the FPGA, 
+We changed our kyber code such that whenever the NTT function is called, the host would stream data to the FPGA,
 and the FPGA would perform the NTT operation and stream the result back to the host.
 
-This implementation is relatively simple, as we only need to optimize the NTT and Inverse NTT kernels. But since NTT 
+This implementation is relatively simple, as we only need to optimize the NTT and Inverse NTT kernels. But since NTT
 only consists of 30\% of the runtime of the Kyber algorithm, the upper bound of the speedup we can achieve is limited
 at 42\%. The added data movement overhead between the host and the FPGA further limits the speedup we can achieve.
 
-\subsection{Full Kyber}
+\subsection*{Full Kyber}
 For our second implementation, we accelerate the entire Kyber algorithm on FPGA.
-This implementation is more complex as it involves bringing all the reference code to FPGA, 
-so we had to make the entire algorithm compatible with Vivado HLS, including parameterizing 
+This implementation is more complex as it involves bringing all the reference code to FPGA,
+so we had to make the entire algorithm compatible with Vivado HLS, including parameterizing
 functions and fixing variable length arrays. The benefit of this implementation is that we significantly reduce the data
 movement overhead between the host and the FPGA, which is a significant bottleneck in the first implementation.
 
 The downside, however, is that we are limited by the random generators as we cannot simply replace it with a hardware
 pseudo-random number generator such as an LFSR. As aforementioned, non-deterministic random noise is essential to the
-security of the Kyber algorithm. 
+security of the Kyber algorithm.
 
 Another bottlenect of the full kyber implementation is resource utilization. Because of the large number of kernels
 and relatively limited resources on the FPGA,
-we cannot optimize the design as much as we would like to. 
+we cannot optimize the design as much as we would like to.
