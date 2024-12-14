@@ -8,7 +8,7 @@
 
     The Number Theoretic Transform (NTT) was the first component of the kyber algorithm that we successfully made synthesizable.
 Given that kyber has multiple functions, we decided that we would start by implementing and exploring optimizing the NTT and
-inverse NTT (INTT) components while we were figuring out the scope of our project. The NTT is similar to the Fast Fourier 
+inverse NTT (INVTT) components while we were figuring out the scope of our project. The NTT is similar to the Fast Fourier 
 Transform (FFT), a transform that has been documented multiple times to be implemented on FPGAs. Both are used to compute
 discrete convolutions efficiently by transforming data into a domain where convolution becomes pointwise multiplication. 
 The main difference is that NTT operates over finite fields instead of complex numbers. This similarity makes the NTT highly
@@ -17,33 +17,33 @@ multiplications, and data shuffling, which are well-suited for the FPGA’s para
 Additionally, as mentioned above, NTT takes up a significant 30 \% of the run time of the kyber algorithm, so optimizing it could
 substantially improve the overall performance and efficiency of the kyber algorithm.  
   
-   Our initial NTT implementation (including both NTT and INTT) had a latency of 6916 cycles and used 1 \% of BRAM\_18K block,
+   Our initial NTT implementation (including both NTT and INVTT) had a latency of 6916 cycles and used 1 \% of BRAM\_18K block,
 26\% of DSP48E blocks, 2\% of  flip flops, and 5\% of look up tables. Due to how much time the NTT component takes and that the 
 design was not incredibly resource intensive, there was plenty of opportunity to optimize. When optimizing, the goal was to
 enhance performance and reduce latency as much as possible while making sure that our resource utilization made it possible to
 run our design implementations on an FPGA board. For the NTT function specifically in our implementation, all loops were fully
-unrolled and pipelined to maximize parallelism and minimize iteration latency. On the other hand, in the INTT function, only
-pipelining was applied to loops. When we tried to add loop unrolling to the INTT function, it only increased the area and had
-no impact on latency. Furthermore, including loop unrolling in the INTT function served so purpose. In addition to optimizing
-the NTT and INTT designs for our NTT implementation, we also unrolled the loops responsible for reading inputs and writing outputs
+unrolled and pipelined to maximize parallelism and minimize iteration latency. On the other hand, in the INVTT function, only
+pipelining was applied to loops. When we tried to add loop unrolling to the INVTT function, it only increased the area and had
+no impact on latency. Furthermore, including loop unrolling in the INVTT function served so purpose. In addition to optimizing
+the NTT and INVTT designs for our NTT implementation, we also unrolled the loops responsible for reading inputs and writing outputs
 to expedite data handling and improve throughput. 
 
-  For our most optimized design, we array partitioned the input to NTT and INTT, which got our latency down to 1597 cycles,
+  For our most optimized design, we array partitioned the input to NTT and INVTT, which got our latency down to 1597 cycles,
 over 4x faster than our baseline NTT optimization. However, this increased our area of DSPE48 blocks all the way up to 92 \% 
 and look up tables to 74 \% on top of using 6\% of the BRAM\_18K blocks and 20\% of flip flops. 92 \% is very high area 
-utilization, and there were some concerns over whether it would possibly run on the FPGA or not, but it ended up working out. These
-optimizations significantly increased our resources from our 2nd most optimized design, which had a latency of 2070 cycles. The
-main difference was array partitioning the input of the NTT and INTT functions. Removing this achieved our second most optimized 
-design which was used 1\% of the BRAM\_18K Blocks, 5\% of the DSPE48 Blocks, 10 \% of the flip flops, and  65\% of the look up tables.
-It achieved a 3.34x speed up, which is not as great as 4.33x speed up, but managed to achieve that by using significantly less resources.
+utilization, and there were some concerns over whether it would possibly run on the FPGA or not. It turned out that it did not actually 
+go through the bitsteam successfully. The optimizations of our most optimized design significantly increased our resources from our 
+2nd most optimized design, which had a latency of 2070 cycles. The main difference was array partitioning the input of the NTT and 
+INVTT functions. Removing this achieved our second most optimized design which was used 1\% of the BRAM\_18K Blocks, 5\% of the DSPE48 
+Blocks, 10 \% of the flip flops, and  65\% of the look up tables. It achieved a 3.34x speed up, which is not as great as 4.33x speed up,
+but managed to achieve that by using significantly less resources. It more importantly, succesfully could run on the board.
 
   Overall, using loop unrolling, pipelining, and array partitioning, we achieved a significant latency reduction (up to 4.33x speed-up).
 The juxtaposition between the most optimized and second most optimized designs highlighted the trade-off between latency reduction and
 resource utilization. While the most optimized design prioritized performance with a 4.33x speed-up at the cost of utilizing 92\% of DSP48E
 blocks, the second most optimized design sacrificed some speed (3.34x speed-up) to achieve a much more resource-efficient implementation, 
-balancing latency improvement with hardware constraints. Although the most optimized design successfully ran on the FPGA board despite its 
-high resource utilization, it was good to have the second, more resource-efficient design as a fallback in case the first design exceeded 
-the hardware's limits.
+balancing latency improvement with hardware constraints. Although the most optimized design had a better latency and technically was within 
+hardware constraints, it did not run on the board successfully. Having a second most optimized design as a fallback in case was a good choice.
 
 
 
