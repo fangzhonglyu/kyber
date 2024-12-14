@@ -5,3 +5,55 @@
 % well as milestones and setbacks
 
 \section*{Project Management}
+
+\subsection*{Milestones}
+
+The project was initially divided into four main milestones for each week, but as the project progressed it split into two main goals. First, we focused on optimizing a single kernel, the NTT kernel, which was the most computationally intensive part of the Kyber algorithm. Second, we also focused on optimizing the entire Kyber algorithm as a whole. As such, the main milestones of the project were \begin{enumerate}
+  \item Synthesis of the NTT kernel on the FPGA.
+  \item Synthesis of the entire Kyber algorithm on the FPGA.
+  \item Optimization of the NTT kernel.
+  \item Optimization of the entire Kyber algorithm.
+\end{enumerate}
+
+\subsection*{Timeline}
+
+\subsubsection*{Week of 11/17: Research and Planning}
+\begin{enumerate}
+  \item Research on the Kyber cryptographic algorithm. \hfill \texttt{\bigred{Everyone}}
+  \item Find a suitable C/C++ implementation of Kyber in software.\hfill \texttt{\bigred{Everyone}}
+  \item Implement test cases for the HLS implementations.\hfill \texttt{\bigred{Barry}}
+  \item Creating a build system for the HLS implementations.\hfill \texttt{\bigred{Aidan, Edmund}}
+  \item Begin converting software implementation for synthesizability.
+        \begin{enumerate}
+          \item Converting types to HLS compatible types.\hfill \texttt{\bigred{Aidan}}
+          \item Removing standard library calls.\hfill \texttt{\bigred{Barry}}
+          \item Converting arguments to template parameters. \hfill \texttt{\bigred{Edmund}}
+        \end{enumerate}
+  \item Preliminary work synthesizing NTT kernel.\hfill \texttt{\bigred{Nita}}
+\end{enumerate}
+\subsubsection*{Week of 11/24: Preliminary HLS Implementation and Results}
+\begin{enumerate}
+  \item Finish initial HLS implementation of NTT. \hfill \texttt{\bigred{Aidan, Nita}}
+  \item Initial optimizations of NTT Kernel \hfill \texttt{\bigred{Barry}}
+  \item Synthesize and verify correctneses of HLS implementation on CSIM, and COSIM RTL simulation. \hfill \texttt{\bigred{Aidan}}
+  \item Refactor project to create fully synthesizable Kyber algorithm. \hfill \texttt{\bigred{Edmund}}
+\end{enumerate}
+\subsubsection*{Week of 12/01: Optimization and Final Results}
+\begin{enumerate}
+  \item Optimize HLS implementation of NTT to minimize latency and area. \hfill \texttt{\bigred{Nita}}
+  \item Create zeboard host software for NTT kernel. \hfill \texttt{\bigred{Aidan}}
+  \item Create zedboard host software for full Kyber algorithm. \hfill \texttt{\bigred{Edmund}}
+  \item Further optimizations on full Kyber algorithm. \hfill \texttt{\bigred{Barry}}
+  \item Finish DUT and verify full Kyber algorithm with CSIM and COSIM. \hfill \texttt{\bigred{Barry}}
+\end{enumerate}
+\subsubsection*{Week of 12/08: Finalized Results, Report, and Presentation}
+\begin{enumerate}
+  \item Refactor zedboard host software to use batched testing for averaged results. \hfill \texttt{\bigred{Aidan, Edmund}}
+  \item Finalize results and create presentation. \hfill \texttt{\bigred{Everyone}}
+  \item Record final presentation and upload. \hfill \texttt{\bigred{Everyone}}
+  \item Create final report. \hfill \texttt{\bigred{Everyone}}
+\end{enumerate}
+
+\subsection*{Challenges and Setbacks}
+The main challenge faced by the team was in the compatibility of the reference software implementation with HLS and FPGA. Although the implementation was already written in C, many of the kernels used arrays of unknown lengths in arguments, and a number of functions used pointer arithmetic and other non-synthesizable constructs. This required longer than expected to convert the software implementation into a synthesizable form, which was why we decided to focus on the NTT kernel first. We eventually resolved these issues by using many template arguments as many of the array lengths were known at compile time, and we also had to rewrite some of the functions to eliminate standard library calls and pointer arithmetic. This also required us to move all implementations into header files for linking purposes, which required refactoring the build system as well.
+
