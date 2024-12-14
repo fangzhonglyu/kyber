@@ -10,14 +10,14 @@
 % "In conclusion, ..." :)
 
 In this project, we successfully implemented optimizations for the kyber algorithm on an FPGA. The optimization of the NTT component
-demonstrated potential for significant performance improvements when optimizing a component of an algorithm. It also showcased 
+demonstrated potential for significant performance improvements when optimizing a component of an algorithm. It also showcased
 the area-latency tradeoff, especially when hardware constraints of the FPGA board. The implementation of the NTT algorithms in hardware
-provided some performance improvements over a pure software approach. It reduced the execution time from 120.859 ms to 105.463 ms. 
+provided some performance improvements over a pure software approach. It reduced the execution time from 120.859 ms to 105.463 ms.
 Expanding to a full hardware implementation of the kyber algorithm further reduced the execution time to 84.050 ms, which demonstrates
 the potential of hardware acceleration. However, the overall speedup was constrained by several factors such as the lower clock
 frequency of the FPGA compared to the ARM core and the limited hardware reuse caused by the diverse operations in the Kyber algorithm.
 These results emphasize the challenges of achieving significant performance gains for complex cryptographic algorithms when there are
-hardware constraints. This is relevant as FPGAs can be very useful when it comes to implementing algorithms and can be used for efficient 
+hardware constraints. This is relevant as FPGAs can be very useful when it comes to implementing algorithms and can be used for efficient
 implementations of post-quantum cryptographic (PQC) algorithm and it is important to continue to explore hardware accelerations of these
 algorithms for the future.
 
@@ -27,6 +27,10 @@ algorithms for the future.
 
 \subsection*{Acknowledgements}
 
-We would like to acknowledge Professor Zhang, Yixiao Du, and Andrew Butt for their support along with all previous course staff of ECE 6775 for 
-the labs, which we based some of our frameworks off of. We also acknowledge the people who developed the kyber algorithm and developed the original
-github for the original reference implementation.
+We would like to acknowledge Professor Zhang, Yixiao Du, and
+Andrew Butt for their support, along with all previous course
+staff of ECE 6775 for the labs, which we based some of our
+frameworks off of. We also acknowledge the
+\href{https://github.com/pq-crystals/kyber/blob/main/AUTHORS}{authors}
+of the original Kyber algorithm and reference implementation,
+found on \href{https://github.com/pq-crystals/kyber}{GitHub}.
